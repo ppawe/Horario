@@ -6,9 +6,10 @@ import com.activeandroid.annotation.Table;
 
 /**
  * class for a person with can (not) participate at an appointment or be the creator of an appointment
- * NOTE: 1. event-person is an 1:n relation-ship (accepted or rejected event), therfore the same person could be serversl times in the database.
- * 2. because of 1 only accepted event or cacelled event could be set - one person could not cacel AND acept an event
+ * NOTE: 1. event-person is an 1:n relation-ship (accepted, rejected or pending event), therfore the same person could be serveral times in the database.
+ * 2. because of 1 only accepted, pending or cancelled event can be set - one person can not cancel AND accept an event
  * 3. enable push, notification time, start tab should only be read out for the app user
+ * 4. if neither acceptedEvent, canceledEvent nor pendingEvent are set the person is someone whose event invitation you accepted or rejected
  */
 //
 @Table(name = "persons")

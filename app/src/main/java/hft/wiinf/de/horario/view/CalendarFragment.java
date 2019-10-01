@@ -20,7 +20,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.activeandroid.query.Select;
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
 import com.github.sundeepk.compactcalendarview.domain.Event;
 
@@ -37,7 +36,6 @@ import hft.wiinf.de.horario.controller.EventController;
 import hft.wiinf.de.horario.controller.InvitationController;
 import hft.wiinf.de.horario.controller.PersonController;
 import hft.wiinf.de.horario.model.AcceptedState;
-import hft.wiinf.de.horario.model.Invitation;
 
 public class CalendarFragment extends Fragment {
     private static final String TAG = "CalendarFragmentActivity";
@@ -325,6 +323,7 @@ public class CalendarFragment extends Fragment {
         calendarFcInvitations.show();
         calendarFcMenu.setImageResource(R.drawable.ic_plusmenu);
         if(InvitationController.getNumberOfInvitations() > 0){
+            calendarTvInvitationNumber.setText(String.valueOf(InvitationController.getNumberOfInvitations()));
             calendarTvInvitationNumber.startAnimation(fadeIn);
             fadeIn.setDuration(300);
             calendarTvInvitationNumber.setVisibility(View.VISIBLE);

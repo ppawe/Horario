@@ -19,7 +19,6 @@ import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.List;
 
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.model.Event;
@@ -40,47 +39,53 @@ public class SendSmsController extends BroadcastReceiver {
     public static long sms_creatorID;
     public Context cont;
     public static Event mEvent;
-    public static boolean lastSentInvitation;
 
+    /**
+     * Generates an invitation string from an event and sends it to the recipient then saves the recipient as a Person with a pending event
+     *
+     * @param context          the context from whixh this method was called
+     * @param event            the event for which an invitation is to be sent
+     * @param sms_recipient_no the phone number of the recipient in E.164 format
+     */
     public void sendInvitationSMS(Context context, Event event, String sms_recipient_no){
-                mEvent = event;
-                cont = context;
-                String stringSplitSymbol = " | ";
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
-                SimpleDateFormat simpleTimeFormat = new SimpleDateFormat("HH:mm");
-                StringBuffer messageStringBuffer = new StringBuffer();
-                messageStringBuffer.append(":HorarioInvitation:");
-                messageStringBuffer.append(mEvent.getCreatorEventId()).append(stringSplitSymbol);
-                messageStringBuffer.append(simpleDateFormat.format(mEvent.getStartTime())).append(stringSplitSymbol);
-                messageStringBuffer.append(simpleDateFormat.format(mEvent.getEndDate())).append(stringSplitSymbol);
-                messageStringBuffer.append(simpleTimeFormat.format(mEvent.getStartTime())).append(stringSplitSymbol);
-                messageStringBuffer.append(simpleTimeFormat.format(mEvent.getEndTime())).append(stringSplitSymbol);
-                messageStringBuffer.append(mEvent.getRepetition()).append(stringSplitSymbol);
-                messageStringBuffer.append(mEvent.getShortTitle()).append(stringSplitSymbol);
-                messageStringBuffer.append(mEvent.getPlace()).append(stringSplitSymbol);
-                messageStringBuffer.append(mEvent.getDescription()).append(stringSplitSymbol);
-                messageStringBuffer.append(mEvent.getCreator().getName()).append(stringSplitSymbol);
-                messageStringBuffer.append(mEvent.getCreator().getPhoneNumber());
-                messageStringBuffer.append(":HorarioInvitation:");
+        mEvent = event;
+        cont = context;
+        String stringSplitSymbol = " | ";
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
+        SimpleDateFormat simpleTimeFormat = new SimpleDateFormat("HH:mm");
+        StringBuffer messageStringBuffer = new StringBuffer();
+        messageStringBuffer.append(":HorarioInvitation:");
+        messageStringBuffer.append(mEvent.getCreatorEventId()).append(stringSplitSymbol);
+        messageStringBuffer.append(simpleDateFormat.format(mEvent.getStartTime())).append(stringSplitSymbol);
+        messageStringBuffer.append(simpleDateFormat.format(mEvent.getEndDate())).append(stringSplitSymbol);
+        messageStringBuffer.append(simpleTimeFormat.format(mEvent.getStartTime())).append(stringSplitSymbol);
+        messageStringBuffer.append(simpleTimeFormat.format(mEvent.getEndTime())).append(stringSplitSymbol);
+        messageStringBuffer.append(mEvent.getRepetition()).append(stringSplitSymbol);
+        messageStringBuffer.append(mEvent.getShortTitle()).append(stringSplitSymbol);
+        messageStringBuffer.append(mEvent.getPlace()).append(stringSplitSymbol);
+        messageStringBuffer.append(mEvent.getDescription()).append(stringSplitSymbol);
+        messageStringBuffer.append(mEvent.getCreator().getName()).append(stringSplitSymbol);
+        messageStringBuffer.append(mEvent.getCreator().getPhoneNumber());
+        messageStringBuffer.append(":HorarioInvitation:");
 
-                String message = messageStringBuffer.toString();
-                Log.d("louis", message);
+        String message = messageStringBuffer.toString();
+        Log.d("louis", message);
 
-                try {
-                    SmsManager smsManager = SmsManager.getDefault();
-                    if(message.length() > 160) {
-                        ArrayList<String> list = smsManager.divideMessage(message);
-                        smsManager.sendMultipartTextMessage(sms_recipient_no,null,list,null,null);
-                    }else {
-                        smsManager.sendTextMessage(sms_recipient_no, null, message, null, null);
-                    }
-                    Person invitedPerson = new Person(sms_recipient_no,"unknown");
-                    invitedPerson.setPendingEvent(event);
-                    invitedPerson.save();
-                    Toast.makeText(context,"Einladung wurde verschickt",Toast.LENGTH_SHORT).show();
-                }catch (Exception e){
-                    Log.d("louis", e.getMessage());
-                }
+        try {
+            SmsManager smsManager = SmsManager.getDefault();
+            if(message.length() > 160) {
+                ArrayList<String> list = smsManager.divideMessage(message);
+                smsManager.sendMultipartTextMessage(sms_recipient_no,null,list,null,null);
+            }else {
+                smsManager.sendTextMessage(sms_recipient_no, null, message, null, null);
+            }
+            Person invitedPerson = new Person(sms_recipient_no,"unknown");
+            invitedPerson.setPendingEvent(event);
+            invitedPerson.save();
+            Toast.makeText(context,"Einladung wurde verschickt",Toast.LENGTH_SHORT).show();
+        }catch (Exception e){
+            Log.d("louis", e.getMessage());
+        }
 
     }
 

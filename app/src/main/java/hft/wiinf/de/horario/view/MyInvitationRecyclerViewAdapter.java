@@ -6,12 +6,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.List;
+
+import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.model.Invitation;
 import hft.wiinf.de.horario.view.InvitationFragment.OnListFragmentInteractionListener;
 
-import java.util.List;
-
-
+/*
+RecyclerViewAdapter receives a list object and generates a view for each invitation object in the list
+Each view has an onClickListener that calls TabActivity.onListFragmentInteraction with the invitation as the parameter
+ */
 public class MyInvitationRecyclerViewAdapter extends RecyclerView.Adapter<MyInvitationRecyclerViewAdapter.ViewHolder> {
 
     private final List<Invitation> mValues;
@@ -52,7 +56,7 @@ public class MyInvitationRecyclerViewAdapter extends RecyclerView.Adapter<MyInvi
                 }
             });
         }else{
-            holder.mContentView.setText("Keine neuen Einladungen");
+            holder.mContentView.setText(R.string.no_new_invitations);
         }
 
 

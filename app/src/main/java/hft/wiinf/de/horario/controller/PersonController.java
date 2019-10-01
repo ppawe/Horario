@@ -20,6 +20,9 @@ public class PersonController {
         }
     }
 
+    public static Person getPersonById(long id) {
+        return (Person) new Select().from(Person.class).where("id = ?", id).executeSingle();
+    }
     public static Person getPersonWhoIam() {
         return new Select()
                 .from(Person.class)
@@ -73,5 +76,10 @@ public class PersonController {
     public static List<Person> getEventCancelledPersons(Event event) {
         return new Select().from(Person.class).where("event_canceled=?", event.getId()).execute();
     }
+
+    public static List<Person> getEventPendingPeople(Event event) {
+        return new Select().from(Person.class).where("event_pending = ?", event.getId()).execute();
+    }
+
 
 }

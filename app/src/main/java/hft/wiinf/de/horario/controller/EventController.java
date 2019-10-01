@@ -128,6 +128,8 @@ public class EventController {
 
     }
 
+    // needs replacing - doesn't do what it say it does
+    // only way to identify an event is the creator's phoneNumber and creatorEventId
     public static Event checkIfEventIsInDatabase(String description, String shortTitle,
                                                  String place,
                                                  Calendar startTime, Calendar endTime) {
@@ -141,6 +143,9 @@ public class EventController {
                 .executeSingle();
     }
 
+    /*public static Event getUniqueEvent(String creatorEventId, String creatorPhoneNumber){
+        Person creator = PersonController.
+    }*/
 
     public static boolean checkIfEventIsInDatabaseThroughId(Long eventIdInSMS) {
         List<Event> resultSet = new Select().from(Event.class).where("Id=?", eventIdInSMS).execute();

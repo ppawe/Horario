@@ -77,7 +77,9 @@ public class MyOwnEventDetailsFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
+                //checks if the event's startTime is in the future
                 if (selectedEvent.getStartTime().after(new Date())) {
+                    //opens input dialog for phone number
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                     builder.setView(R.layout.dialog_askingforphonenumber);
                     builder.setCancelable(true);
@@ -90,15 +92,16 @@ public class MyOwnEventDetailsFragment extends Fragment {
                         @Override
                         public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
                             String inputText = textView.getText().toString().replaceAll("\\s", "");
+                            //this regex checks valid country codes
                             if (actionId == EditorInfo.IME_ACTION_DONE && inputText.matches("\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$") || inputText.matches("(\\(555\\)521-5554|\\(555\\)521-5556)")) {
                                 sendToNumber = inputText;
                                 dialog.dismiss();
                                 if (ContextCompat.checkSelfPermission(activity, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
                                     requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 2);
                                 }
+                                //check if the number has already been invited or accepted the invitation
                                 if (ContextCompat.checkSelfPermission(activity, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
                                     List<Person> participants = PersonController.getEventAcceptedPersons(selectedEvent);
-                                    participants.addAll(PersonController.getEventCancelledPersons(selectedEvent));
                                     boolean alreadyInvited = false;
                                     for(Person participant : participants){
                                         if(participant.getPhoneNumber().equals(sendToNumber)){
@@ -106,9 +109,10 @@ public class MyOwnEventDetailsFragment extends Fragment {
                                         }
                                     }
                                     if(alreadyInvited || PersonController.personIsInvited(sendToNumber,selectedEvent)){
-                                        Toast.makeText(getContext(),"Person nimmt bereits teil, hat abgesagt oder wurde bereits eingeladen.",Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getContext(), "Person nimmt bereits teil oder wurde bereits eingeladen.", Toast.LENGTH_SHORT).show();
                                         dialog.cancel();
                                     }else {
+                                        //send the invitation
                                         new SendSmsController().sendInvitationSMS(getContext(), selectedEvent, sendToNumber);
                                     }
                                 } else {

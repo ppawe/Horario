@@ -7,16 +7,13 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.util.Log;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Random;
 
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.TabActivity;
@@ -57,7 +54,7 @@ public class NotificationController {
     public static void sendInvitationNotification(Context context, Invitation invitation){
         Intent intent = new Intent(context, TabActivity.class);
         intent.putExtra("id",String.valueOf(invitation.getId()));
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        //intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,PendingIntent.FLAG_CANCEL_CURRENT);
         createNotificationChannel(context);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context,CHANNEL_ID)

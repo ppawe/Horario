@@ -93,9 +93,14 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
 
 
     @Override
-    public void onListFragmentInteraction(Invitation invitation1) {
+    public void onNewIntent(Intent intent) {
+        setIntent(intent);
+    }
 
-        invitation = invitation1;
+    @Override
+    public void onListFragmentInteraction(Invitation invitation) {
+
+        this.invitation = invitation;
 
         if (mViewPager.getCurrentItem() == 0) {
             openActionDialogAfterScanning("EventOverview");
