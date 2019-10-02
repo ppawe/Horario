@@ -25,7 +25,7 @@ import java.util.List;
 
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.EventController;
-import hft.wiinf.de.horario.controller.PersonController;
+import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.Person;
 
@@ -60,7 +60,8 @@ public class ParticipantsListFragment extends Fragment {
         textViewEventData = view.findViewById(R.id.textViewEventData);
         setSelectedEvent(EventController.getEventById(getEventId()));
         participantsListView = view.findViewById(R.id.ParticipantsList);
-        textViewEventData.setText(selectedEvent.getShortTitle() + " " + dayFormat.format(selectedEvent.getStartTime()));
+        String concat = selectedEvent.getShortTitle() + " " + dayFormat.format(selectedEvent.getStartTime());
+        textViewEventData.setText(concat);
         swipeRefresh = view.findViewById(R.id.swiperefresh);
         update();
 
@@ -123,15 +124,15 @@ public class ParticipantsListFragment extends Fragment {
         final ArrayList<Participant> participantsArray = new ArrayList<>();
         /*Look into the DB and get all the participants of an event, then place them in an array with a prefix depending on the acceptance*/
         participantsArray.clear();
-        List<Person> allAcceptances = PersonController.getEventAcceptedPersons(event);
+        List<Person> allAcceptances = EventPersonController.getEventParticipants(event);
         for (Person personAccepted : allAcceptances) {
             String nameToSave = "Y:" + personAccepted.getName();
             participantsArray.add(new Participant(nameToSave));
         }
-        List<Person> allCancellations = PersonController.getEventCancelledPersons(event);
+        List<Person> allCancellations = EventPersonController.getEventCancellations(event);
         for (Person personCancelled : allCancellations) {
             String nameToSave = "N:" + personCancelled.getName();
-            participantsArray.add(new Participant(nameToSave, personCancelled.getRejectionReason()));
+            participantsArray.add(new Participant(nameToSave, EventPersonController.getEventPerson(event, personCancelled).getRejectionReason()));
         }
 
         final ArrayAdapter adapter = new ArrayAdapter(context, R.layout.list_row, participantsArray) {

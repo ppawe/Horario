@@ -11,7 +11,6 @@ import java.util.List;
 
 import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
-import hft.wiinf.de.horario.model.Person;
 
 public class EventController {
     //saves (update or create)an event
@@ -22,29 +21,25 @@ public class EventController {
     }
 
     public static void deleteEvent(@NonNull Event event) {
-        //deletes all persons that accepted the event
-        for (Person person : PersonController.getEventCancelledPersons(event)) {
-            PersonController.deletePerson(person);
+        if (event.getId() != null) {
+            //delete also the repeating events if applicable
+            List<Event> repeatingEvents = EventController.findRepeatingEvents(event.getId());
+            for (Event repeatingEvent : repeatingEvents) {
+                repeatingEvent.delete();
+            }
+            event.delete();
         }
-        //deletes all persons that cancelled the event
-        for (Person person : PersonController.getEventAcceptedPersons(event)) {
-            PersonController.deletePerson(person);
-        }
-        //delete also the repeating events if applicable
-        List<Event> repeatingEvents = EventController.findRepeatingEvents(event.getId());
-        for (Event repeatingEvent : repeatingEvents) {
-            repeatingEvent.delete();
-        }
-        event.delete();
     }
 
     public static Event getEventById(@NonNull Long id) {
         return Event.load(Event.class, id);
     }
 
+    // what this is meant to do: get one of your own events via its Id and all the serial events following it
+    // what it actually does: get someone else's event that has the creatorEventId as its Id in
+    // THEIR database AND happens to have its startEvent saved with that same Id in YOUR database
     public static List<Event> getMyEventsByCreatorEventId(@NonNull Long creatorEventId) {
         return new Select().from(Event.class).where("creatorEventId=? AND startEvent=?", creatorEventId, creatorEventId).execute();
-
     }
 
     //find the list of events that start in the given period (enddate is not included!)
@@ -105,7 +100,6 @@ public class EventController {
             Event repetitionEvent = new Event(firstEvent.getCreator());
             repetitionEvent.setPlace(firstEvent.getPlace());
             repetitionEvent.setDescription(firstEvent.getDescription());
-            repetitionEvent.setAccepted(firstEvent.getAccepted());
             repetitionEvent.setRepetition(firstEvent.getRepetition());
             repetitionEvent.setEndDate(firstEvent.getEndDate());
             repetitionEvent.setShortTitle(firstEvent.getShortTitle());
@@ -128,7 +122,7 @@ public class EventController {
 
     }
 
-    // needs replacing - doesn't do what it say it does
+    // needs replacing - doesn't do what it says it does
     // only way to identify an event is the creator's phoneNumber and creatorEventId
     public static Event checkIfEventIsInDatabase(String description, String shortTitle,
                                                  String place,

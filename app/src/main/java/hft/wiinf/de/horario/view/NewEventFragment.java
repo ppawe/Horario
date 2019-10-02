@@ -37,16 +37,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.EventController;
+import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.controller.NotificationController;
 import hft.wiinf.de.horario.controller.PersonController;
-import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.Person;
 import hft.wiinf.de.horario.model.Repetition;
@@ -390,7 +389,6 @@ public class NewEventFragment extends Fragment {
         me.setName(edittext_userName.getText().toString());
         PersonController.savePerson(me);
         Event event = new Event(me);
-        event.setAccepted(AcceptedState.ACCEPTED);
         event.setDescription(editText_description.getText().toString());
         event.setStartTime(startTime.getTime());
         event.setEndTime(endTime.getTime());
@@ -402,8 +400,14 @@ public class NewEventFragment extends Fragment {
         if (event.getRepetition() != Repetition.NONE) {
             event.setEndDate(endOfRepetition.getTime());
             EventController.saveSerialevent(event);
-        } else
+            List<Event> savedEvents = EventController.findRepeatingEvents(event.getId());
+            for (Event singleEvent : savedEvents) {
+                EventPersonController.addEventPerson(singleEvent, me, "accepted");
+            }
+        } else {
             EventController.saveEvent(event);
+        }
+        EventPersonController.addEventPerson(event, me, "accepted");
         if (!EventController.createdEventsYet()) {
             Long date = System.currentTimeMillis();
             saveReadDate(String.valueOf(date));

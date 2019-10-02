@@ -13,14 +13,36 @@ public class EventPerson extends Model {
     private Event event;
     @Column
     private String status;
+    @Column
+    private String rejectionReason = "";
 
     public EventPerson() {
+    }
+
+    public EventPerson(Person person, Event event) {
+        this.person = person;
+        this.event = event;
     }
 
     public EventPerson(Person person, Event event, String status) {
         this.person = person;
         this.event = event;
         this.status = status;
+    }
+
+    public EventPerson(Person person, Event event, String status, String rejectionReason) {
+        this.person = person;
+        this.event = event;
+        this.status = status;
+        this.rejectionReason = rejectionReason;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
     }
 
     public String getStatus() {

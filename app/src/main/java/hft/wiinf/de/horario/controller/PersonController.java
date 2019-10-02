@@ -2,12 +2,10 @@ package hft.wiinf.de.horario.controller;
 
 import android.util.Log;
 
-import com.activeandroid.query.Delete;
 import com.activeandroid.query.Select;
 
 import java.util.List;
 
-import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.Person;
 
 public class PersonController {
@@ -20,6 +18,14 @@ public class PersonController {
         }
     }
 
+    public static Person addPerson(String phoneNumber, String name) {
+        if (getPersonViaPhoneNumber(phoneNumber) == null) {
+            Person person = new Person(phoneNumber, name);
+            person.save();
+            return person;
+        }
+        return getPersonViaPhoneNumber(phoneNumber);
+    }
     public static Person getPersonById(long id) {
         return (Person) new Select().from(Person.class).where("id = ?", id).executeSingle();
     }
@@ -30,27 +36,13 @@ public class PersonController {
                 .executeSingle();
     }
 
-    public static Person checkforPhoneNumber(String phoneNumber) {
+    public static Person getPersonViaPhoneNumber(String phoneNumber) {
         return new Select()
                 .from(Person.class)
                 .where("phoneNumber = ?", phoneNumber)
-                .and("event_pending = ?", "")
                 .executeSingle();
     }
 
-    public static boolean personIsInvited(String phoneNumber, Event event){
-        return new Select().from(Person.class)
-                .where("event_pending = ?", String.valueOf(event.getId()))
-                .and("phoneNumber = ?", phoneNumber)
-                .exists();
-    }
-
-    public static void deleteInvitedPerson(String phoneNumber, String eventID){
-        new Delete().from(Person.class)
-                .where("event_pending = ?", eventID)
-                .and("phoneNumber = ?", phoneNumber)
-                .execute();
-    }
 
     //get all persons
     public static List<Person> getAllPersons() {
@@ -60,26 +52,14 @@ public class PersonController {
     }
 
     public static void savePerson(Person person) {
-        person.save();
+        if (person != null) {
+            person.save();
+        }
     }
 
     public static void deletePerson(Person person) {
-        person.delete();
+        if (person != null && person.getId() != null) {
+            person.delete();
+        }
     }
-
-    //get persons that accepted the event
-    public static List<Person> getEventAcceptedPersons(Event event) {
-        return new Select().from(Person.class).where("event_accepted=?", event.getId()).execute();
-    }
-
-    //get all persons that cancelled the event
-    public static List<Person> getEventCancelledPersons(Event event) {
-        return new Select().from(Person.class).where("event_canceled=?", event.getId()).execute();
-    }
-
-    public static List<Person> getEventPendingPeople(Event event) {
-        return new Select().from(Person.class).where("event_pending = ?", event.getId()).execute();
-    }
-
-
 }

@@ -40,6 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import hft.wiinf.de.horario.controller.EventController;
+import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.controller.InvitationController;
 import hft.wiinf.de.horario.controller.NoScanResultExceptionController;
 import hft.wiinf.de.horario.controller.NotificationController;
@@ -78,8 +79,8 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     Event singleEvent;
     //Index: 0 = CreatorID; 1 = StartDate; 2 = EndDate; 3 = StartTime; 4 = EndTime;
     //       5 = Repetition; 6 = ShortTitle; 7 = Place; 8 = Description;  9 = EventCreatorName
-    private String creatorID, startDate, endDate, startTime, endTime, repetition, shortTitle, place,
-            description, eventCreatorName, creatorPhoneNumber;
+    private String eventCreatorId, eventStartDate, eventEndDate, eventStartTime, eventEndTime, eventRepetition, eventShortTitle, eventPlace,
+            eventDescription, eventCreatorName, eventCreatorPhoneNumber;
     private String hourOfDay, minutesOfDay, year, month, day;
 
     Calendar myStartTime = Calendar.getInstance();
@@ -348,21 +349,21 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
             //Index: 0 = CreatorID; 1 = StartDate; 2 = EndDate; 3 = StartTime; 4 = EndTime;
             //       5 = Repetition; 6 = ShortTitle; 7 = Place; 8 = Description;  9 = EventCreatorName; 10 = phoneNumber;
             String[] eventStringBufferArray = invitation.getInvitation().split("\\|");
-            creatorID = eventStringBufferArray[0].trim();
-            startDate = eventStringBufferArray[1].trim();
-            endDate = eventStringBufferArray[2].trim();
-            startTime = eventStringBufferArray[3].trim();
-            endTime = eventStringBufferArray[4].trim();
-            repetition = eventStringBufferArray[5].toUpperCase().trim();
-            shortTitle = eventStringBufferArray[6].trim();
-            place = eventStringBufferArray[7].trim();
-            description = eventStringBufferArray[8].trim();
+            eventCreatorId = eventStringBufferArray[0].trim();
+            eventStartDate = eventStringBufferArray[1].trim();
+            eventEndDate = eventStringBufferArray[2].trim();
+            eventStartTime = eventStringBufferArray[3].trim();
+            eventEndTime = eventStringBufferArray[4].trim();
+            eventRepetition = eventStringBufferArray[5].toUpperCase().trim();
+            eventShortTitle = eventStringBufferArray[6].trim();
+            eventPlace = eventStringBufferArray[7].trim();
+            eventDescription = eventStringBufferArray[8].trim();
             eventCreatorName = eventStringBufferArray[9].trim();
-            creatorPhoneNumber = eventStringBufferArray[10].trim();
+            eventCreatorPhoneNumber = eventStringBufferArray[10].trim();
 
             // There are two SecurityQuery
             // - First this two (unused) Variables are checked to Create an Exception if the Array isn't in the correct Form
-            // - Second is the Switch-Case Method. If der no correct repetition String inside
+            // - Second is the Switch-Case Method. If der no correct eventRepetition String inside
             // it will show an Error an the Cancel Button.
             String creatorID = eventStringBufferArray[0].trim();
             String phoneNummber = eventStringBufferArray[10].trim();
@@ -370,21 +371,21 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
 
             // Change the DataBase Repetition Information in a German String for the Repetition Element
             // like "Daily" into "täglich" and so on
-            switch (repetition) {
+            switch (eventRepetition) {
                 case "YEARLY":
-                    repetition = getString(R.string.yearly);
+                    eventRepetition = getString(R.string.yearly);
                     break;
                 case "MONTHLY":
-                    repetition = getString(R.string.monthly);
+                    eventRepetition = getString(R.string.monthly);
                     break;
                 case "WEEKLY":
-                    repetition = getString(R.string.weekly);
+                    eventRepetition = getString(R.string.weekly);
                     break;
                 case "DAILY":
-                    repetition = getString(R.string.daily);
+                    eventRepetition = getString(R.string.daily);
                     break;
                 case "NONE":
-                    repetition = "";
+                    eventRepetition = "";
                     break;
                 default:
                     qrScanner_reject.setVisibility(View.GONE);
@@ -404,22 +405,22 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
 
             }
 
-            // Event shortTitle in Headline with eventCreatorName
-            qrScanner_result_headline.setText(shortTitle + " " + getString(R.string.from) + eventCreatorName);
+            // Event eventShortTitle in Headline with eventCreatorName
+            qrScanner_result_headline.setText(eventShortTitle + " " + getString(R.string.from) + eventCreatorName);
             // Check for a Repetition Event and Change the Description Output with and without
             // Repetition Element inside.
-            if (repetition.equals("")) {
-                qrScanner_result_description.setText(getString(R.string.on) + startDate
-                        + getString(R.string.find) + getString(R.string.from) + startTime + getString(R.string.until)
-                        + endTime + getString(R.string.clock_at_room) + place + " " + shortTitle
+            if (eventRepetition.equals("")) {
+                qrScanner_result_description.setText(getString(R.string.on) + eventStartDate
+                        + getString(R.string.find) + getString(R.string.from) + eventStartTime + getString(R.string.until)
+                        + eventEndTime + getString(R.string.clock_at_room) + eventPlace + " " + eventShortTitle
                         + getString(R.string.instead_of) + "\n" + "\n" + getString(R.string.eventDetails)
-                        + description);
+                        + eventDescription);
             } else {
-                qrScanner_result_description.setText(getString(R.string.as_of) + startDate
-                        + getString(R.string.until) + endDate + getString(R.string.find)
-                        + repetition + getString(R.string.at) + startTime + getString(R.string.clock_to)
-                        + endTime + getString(R.string.clock_at_room) + place + " " + shortTitle
-                        + getString(R.string.instead_of) + "\n" + "\n" + getString(R.string.eventDetails) + description);
+                qrScanner_result_description.setText(getString(R.string.as_of) + eventStartDate
+                        + getString(R.string.until) + eventEndDate + getString(R.string.find)
+                        + eventRepetition + getString(R.string.at) + eventStartTime + getString(R.string.clock_to)
+                        + eventEndTime + getString(R.string.clock_at_room) + eventPlace + " " + eventShortTitle
+                        + getString(R.string.instead_of) + "\n" + "\n" + getString(R.string.eventDetails) + eventDescription);
 
             }
             // In the CatchBlock the User see some Error Message and Restart after Clock on Button the TabActivity
@@ -622,23 +623,23 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
 
     /**
      * This method is called if event is not a serial Event
-     * This method converts a String (startDate and startTime: from scan result) to a Date
+     * This method converts a String (eventStartDate and eventStartTime: from scan result) to a Date
      *
      * @return Date
      */
     private Calendar getStartTimeEvent() {
-        //startDate from qr scanner
-        String[] startDateStringBufferArray = startDate.split("\\.");
+        //eventStartDate from qr scanner
+        String[] startDateStringBufferArray = eventStartDate.split("\\.");
         day = startDateStringBufferArray[0].trim();
         month = startDateStringBufferArray[1].trim();
         year = startDateStringBufferArray[2].trim();
 
-        //startTime from qr scanner
-        String[] startTimeStringBufferArray = startTime.split(":");
+        //eventStartTime from qr scanner
+        String[] startTimeStringBufferArray = eventStartTime.split(":");
         hourOfDay = startTimeStringBufferArray[0].trim();
         minutesOfDay = startTimeStringBufferArray[1].trim();
 
-        //set startDate and startTime in one variable
+        //set eventStartDate and eventStartTime in one variable
         myStartTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(hourOfDay));
         myStartTime.set(Calendar.MINUTE, Integer.parseInt(minutesOfDay));
         myStartTime.set(Integer.parseInt(year), Integer.parseInt(month) - 1, Integer.parseInt(day));
@@ -647,17 +648,17 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
 
     /**
      * This method is called if event is not a serial Event
-     * This method converts a String (startDate and endTime: from scan result) to a Date
+     * This method converts a String (eventStartDate and eventEndTime: from scan result) to a Date
      *
      * @return Date
      */
     private Calendar getEndTimeEvent() {
-        String[] startDateStringBufferArray = startDate.split("\\.");
+        String[] startDateStringBufferArray = eventStartDate.split("\\.");
         day = startDateStringBufferArray[0].trim();
         month = startDateStringBufferArray[1].trim();
         year = startDateStringBufferArray[2].trim();
 
-        String[] endTimeStringBufferArray = endTime.split(":");
+        String[] endTimeStringBufferArray = eventEndTime.split(":");
         hourOfDay = endTimeStringBufferArray[0].trim();
         minutesOfDay = endTimeStringBufferArray[1].trim();
 
@@ -669,17 +670,17 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
 
     /**
      * This method is called if event is a serial event
-     * This method converts a String (endDate and endTime: from scan result) to a Date
+     * This method converts a String (eventEndDate and eventEndTime: from scan result) to a Date
      *
      * @return Date
      */
     private Calendar getEndDateEvent() {
-        String[] endDateStringBufferArray = endDate.split("\\.");
+        String[] endDateStringBufferArray = eventEndDate.split("\\.");
         day = endDateStringBufferArray[0].trim();
         month = endDateStringBufferArray[1].trim();
         year = endDateStringBufferArray[2].trim();
 
-        String[] endTimeStringBufferArray = endTime.split(":");
+        String[] endTimeStringBufferArray = eventEndTime.split(":");
         hourOfDay = endTimeStringBufferArray[0].trim();
         minutesOfDay = endTimeStringBufferArray[1].trim();
 
@@ -694,8 +695,8 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
      *
      * @return which Repetition the event has
      */
-    private Repetition getRepetition() {
-        switch (repetition) {
+    private Repetition getEventRepetition() {
+        switch (eventRepetition) {
             case "jährlich":
                 return Repetition.YEARLY;
             case "monatlich":
@@ -725,13 +726,13 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        //Calendar variables for checking startTime and endTime
+                        //Calendar variables for checking eventStartTime and eventEndTime
                         Calendar checkStartTime = getStartTimeEvent();
                         Calendar checkEndTime = getEndTimeEvent();
 
                         //check if Event is n Database or not
-                        singleEvent = EventController.checkIfEventIsInDatabase(description,
-                                shortTitle, place, checkStartTime, checkEndTime);
+                        singleEvent = EventController.checkIfEventIsInDatabase(eventDescription,
+                                eventShortTitle, eventPlace, checkStartTime, checkEndTime);
 
                         //if event is in database
                         if (singleEvent != null && singleEvent.getAccepted().equals(AcceptedState.WAITING) ||
@@ -777,21 +778,19 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
      * This method saves and accepts or just saves the event
      */
     private void savePersonAndEvent() {
-        Person person = new Person();
-        Event event = new Event(person);
         //check if user who published the event is in database
-        personEventCreator = PersonController.checkforPhoneNumber(creatorPhoneNumber);
+        personEventCreator = PersonController.addPerson(eventCreatorPhoneNumber, eventCreatorName);
 
-        checkIfPersonIsInDatabase(event, person);
+        Event event = new Event(personEventCreator);
 
         //set all things for event
-        event.setCreatorEventId(Long.parseLong(creatorID));
+        event.setCreatorEventId(Long.parseLong(eventCreatorId));
         event.setStartTime(getStartTimeEvent().getTime());
         event.setEndTime(getEndTimeEvent().getTime());
-        event.setRepetition(getRepetition());
-        event.setShortTitle(shortTitle);
-        event.setPlace(place);
-        event.setDescription(description);
+        event.setRepetition(getEventRepetition());
+        event.setShortTitle(eventShortTitle);
+        event.setPlace(eventPlace);
+        event.setDescription(eventDescription);
 
         //check which button got pressed and set acceptedState
         if (buttonId == 1) {
@@ -806,6 +805,14 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
             event.setEndDate(getEndDateEvent().getTime());
             //save serialevent
             EventController.saveSerialevent(event);
+            List<Event> savedEvents = EventController.findRepeatingEvents(event.getId());
+            for (Event singleEvent : savedEvents) {
+                if (buttonId == 1) {
+                    EventPersonController.addEventPerson(singleEvent, PersonController.getPersonWhoIam(), "accepted");
+                } else if (buttonId == 2) {
+                    EventPersonController.addEventPerson(singleEvent, PersonController.getPersonWhoIam(), "pending");
+                }
+            }
         } else {
             //save the one event
             EventController.saveEvent(event);
@@ -836,16 +843,16 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         Person person = new Person();
         Event event = new Event(person);
         //check if user who published the event is in database
-        personEventCreator = PersonController.checkforPhoneNumber(creatorPhoneNumber);
+        personEventCreator = PersonController.getPersonViaPhoneNumber(eventCreatorPhoneNumber);
 
         checkIfPersonIsInDatabase(event, person);
 
-        //Calendar variables for checking startTime and endTime
+        //Calendar variables for checking eventStartTime and eventEndTime
         Calendar checkStartTime = getStartTimeEvent();
         Calendar checkEndTime = getEndTimeEvent();
         //check if Event is n Database or not
-        singleEvent = EventController.checkIfEventIsInDatabase(description,
-                shortTitle, place, checkStartTime, checkEndTime);
+        singleEvent = EventController.checkIfEventIsInDatabase(eventDescription,
+                eventShortTitle, eventPlace, checkStartTime, checkEndTime);
 
         afterScanningDialogAction.cancel();
         EventRejectEventFragment eventRejectEventFragment = new EventRejectEventFragment();
@@ -854,13 +861,13 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         //if event is in not database
         if (singleEvent == null) {
             //set all things for event
-            event.setCreatorEventId(Long.parseLong(creatorID));
+            event.setCreatorEventId(Long.parseLong(eventCreatorId));
             event.setStartTime(getStartTimeEvent().getTime());
             event.setEndTime(getEndTimeEvent().getTime());
-            event.setRepetition(getRepetition());
-            event.setShortTitle(shortTitle);
-            event.setPlace(place);
-            event.setDescription(description);
+            event.setRepetition(getEventRepetition());
+            event.setShortTitle(eventShortTitle);
+            event.setPlace(eventPlace);
+            event.setDescription(eventDescription);
             event.setAccepted(AcceptedState.REJECTED);
 
             //check if event is serialevent
@@ -908,7 +915,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         } else {
             //if publisher is not in database: save a new person
             person.setName(eventCreatorName);
-            person.setPhoneNumber(creatorPhoneNumber);
+            person.setPhoneNumber(eventCreatorPhoneNumber);
             person.save();
         }
 
@@ -928,7 +935,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         boolean test = getStartTimeEvent().before(now);
         Log.i("STARTZEIT", getStartTimeEvent().getTime().toString());
         Log.i("EVENTZEIT", now.getTime().toString());
-        if (getRepetition() == Repetition.NONE) {
+        if (getEventRepetition() == Repetition.NONE) {
             if (getStartTimeEvent().getTime().before(now.getTime())) {
                 invitation.delete();
                 Toast.makeText(this, R.string.startTime_afterScanning_past, Toast.LENGTH_SHORT).show();
@@ -1021,7 +1028,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                                 })
                                 .create().show();
                     } else if (counter < 1) {
-                        // user did NOT check "never ask again" this is a good place to explain the user
+                        // user did NOT check "never ask again" this is a good eventPlace to explain the user
                         // why you need the permission and ask if he wants // to accept it (the rationale)
                         new android.support.v7.app.AlertDialog.Builder(this)
                                 .setTitle(R.string.requestPermission_firstTryRequest)
@@ -1106,7 +1113,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                                     })
                                     .create().show();
                         } else if (counterSMS < 1) {
-                            // user did NOT check "never ask again" this is a good place to explain the user
+                            // user did NOT check "never ask again" this is a good eventPlace to explain the user
                             // why you need the permission and ask if he wants // to accept it (the rationale)
                             new AlertDialog.Builder(this)
                                     .setOnKeyListener(new DialogInterface.OnKeyListener() {
@@ -1206,7 +1213,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                                     })
                                     .create().show();
                         } else if (counterCONTACTS < 1) {
-                            // user did NOT check "never ask again" this is a good place to explain the user
+                            // user did NOT check "never ask again" this is a good eventPlace to explain the user
                             // why you need the permission and ask if he wants // to accept it (the rationale)
                             new AlertDialog.Builder(this)
                                     .setOnKeyListener(new DialogInterface.OnKeyListener() {

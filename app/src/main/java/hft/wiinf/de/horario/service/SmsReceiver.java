@@ -1,6 +1,5 @@
 package hft.wiinf.de.horario.service;
 
-import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -22,17 +21,16 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.TabActivity;
 import hft.wiinf.de.horario.controller.EventController;
+import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.controller.InvitationController;
 import hft.wiinf.de.horario.controller.NotificationController;
 import hft.wiinf.de.horario.controller.PersonController;
-import hft.wiinf.de.horario.controller.ScanResultReceiverController;
 import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.Invitation;
 import hft.wiinf.de.horario.model.Person;
@@ -300,7 +298,12 @@ public class SmsReceiver extends BroadcastReceiver {
      */
     private void parseHorarioSMSAndUpdate(List<ReceivedHorarioSMS> unreadSMS, Context context) {
         for (ReceivedHorarioSMS singleUnreadSMS : unreadSMS) {
-            Person person = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
+            //Person person = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
+            Person person = PersonController.getPersonViaPhoneNumber(singleUnreadSMS.getPhonenumber());
+            if (person == null) {
+                person = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
+                person.save();
+            }
             String savedContactExisting;
             savedContactExisting = lookForSavedContact(singleUnreadSMS.getPhonenumber(), context);
 
@@ -315,8 +318,6 @@ public class SmsReceiver extends BroadcastReceiver {
                 addNotification(context, 1, person.getName(), singleUnreadSMS.isAcceptance());
                 break;
             }
-            //Deletes the invited placeholder person
-            PersonController.deleteInvitedPerson(singleUnreadSMS.getPhonenumber(),String.valueOf(eventIdInSMS));
             //Check if is SerialEvent or not
             if (isSerialEvent(eventIdInSMS)) {
                 boolean hasAcceptedEarlier = false;
@@ -337,8 +338,8 @@ public class SmsReceiver extends BroadcastReceiver {
                         } else {
                             personA.setName(personA.getName() + " (" + singleUnreadSMS.getPhonenumber() + ")");
                         }
-                        List<Person> allRejections = PersonController.getEventCancelledPersons(event);
-                        List<Person> allAcceptances = PersonController.getEventAcceptedPersons(event);
+                        List<Person> allRejections = EventPersonController.getEventCancellations(event);
+                        List<Person> allAcceptances = EventPersonController.getEventParticipants(event);
                         for (Person personRejected : allRejections) {
                             personRejected.setPhoneNumber(shortifyPhoneNumber(personRejected.getPhoneNumber()));
                             personA.setPhoneNumber(shortifyPhoneNumber(personA.getPhoneNumber()));

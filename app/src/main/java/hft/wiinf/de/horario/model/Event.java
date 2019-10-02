@@ -35,8 +35,7 @@ public class Event extends Model {
     private Repetition repetition = Repetition.NONE;
     @Column
     private Date endDate = new Date();
-    @Column
-    private AcceptedState accepted;
+
     @Column
     //the first event of an repeating / serial event
     private Event startEvent = null;
@@ -208,23 +207,7 @@ public class Event extends Model {
     }
 
 
-    /**
-     * Gets accepted.
-     *
-     * @return the accepted state of the event
-     */
-    public AcceptedState getAccepted() {
-        return accepted;
-    }
 
-    /**
-     * Sets accepted.
-     *
-     * @param accepted the accepted state of the event
-     */
-    public void setAccepted(AcceptedState accepted) {
-        this.accepted = accepted;
-    }
 
     /**
      * Gets start event.
