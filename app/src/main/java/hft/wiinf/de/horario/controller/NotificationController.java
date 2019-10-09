@@ -18,7 +18,7 @@ import java.util.List;
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.TabActivity;
 import hft.wiinf.de.horario.model.Event;
-import hft.wiinf.de.horario.model.Invitation;
+import hft.wiinf.de.horario.model.InvitationString;
 import hft.wiinf.de.horario.model.Person;
 import hft.wiinf.de.horario.model.Repetition;
 import hft.wiinf.de.horario.service.NotificationReceiver;
@@ -51,16 +51,16 @@ public class NotificationController {
     }
 
 
-    public static void sendInvitationNotification(Context context, Invitation invitation){
+    public static void sendInvitationNotification(Context context, InvitationString invitationString) {
         Intent intent = new Intent(context, TabActivity.class);
-        intent.putExtra("id",String.valueOf(invitation.getId()));
+        intent.putExtra("id", String.valueOf(invitationString.getId()));
         //intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,PendingIntent.FLAG_CANCEL_CURRENT);
         createNotificationChannel(context);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context,CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_menu_invitation)
                 .setContentTitle("Horario")
-                .setContentText(invitation.getTitle() + " " + invitation.getStartDate() + " " + invitation.getStartTime())
+                .setContentText(invitationString.getTitle() + " " + invitationString.getStartDate() + " " + invitationString.getStartTime())
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
@@ -68,7 +68,7 @@ public class NotificationController {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
 // notificationId is a unique int for each notification that you must define
-        notificationManager.notify(invitation.getId().intValue(), builder.build());
+        notificationManager.notify(invitationString.getId().intValue(), builder.build());
     }
 
     /**

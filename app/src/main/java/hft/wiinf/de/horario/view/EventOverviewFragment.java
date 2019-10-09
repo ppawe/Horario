@@ -7,10 +7,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,9 +21,6 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-
-import com.activeandroid.query.Select;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,11 +30,10 @@ import java.util.List;
 
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.EventController;
+import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.controller.InvitationController;
 import hft.wiinf.de.horario.controller.PersonController;
-import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
-import hft.wiinf.de.horario.model.Invitation;
 import hft.wiinf.de.horario.model.Person;
 
 public class EventOverviewFragment extends Fragment {
@@ -104,9 +98,10 @@ public class EventOverviewFragment extends Fragment {
                 if (eventList.get(i).getCreator().equals(PersonController.getPersonWhoIam())) {
                     appointmentArrayDay.add(new Appointment(timeFormat.format(eventList.get(i).getStartTime()) + " - " + timeFormat.format(eventList.get(i).getEndTime()) + " " + eventList.get(i).getShortTitle(), 3, eventList.get(i).getId(), eventList.get(i).getCreator()));
                 } else {
-                    if (eventList.get(i).getAccepted().equals(AcceptedState.ACCEPTED)) {
+                    Person me = PersonController.getPersonWhoIam();
+                    if (EventPersonController.getEventPerson(eventList.get(i), me).getStatus().equals("accepted")) {
                         appointmentArrayDay.add(new Appointment(timeFormat.format(eventList.get(i).getStartTime()) + " - " + timeFormat.format(eventList.get(i).getEndTime()) + " " + eventList.get(i).getShortTitle(), 1, eventList.get(i).getId(), eventList.get(i).getCreator()));
-                    } else if (eventList.get(i).getAccepted().equals(AcceptedState.WAITING)) {
+                    } else if (EventPersonController.getEventPerson(eventList.get(i), me).getStatus().equals("pending")) {
                         appointmentArrayDay.add(new Appointment(timeFormat.format(eventList.get(i).getStartTime()) + " - " + timeFormat.format(eventList.get(i).getEndTime()) + " " + eventList.get(i).getShortTitle(), 2, eventList.get(i).getId(), eventList.get(i).getCreator()));
                     }
                 }

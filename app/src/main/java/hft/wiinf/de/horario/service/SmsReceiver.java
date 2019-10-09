@@ -31,8 +31,9 @@ import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.controller.InvitationController;
 import hft.wiinf.de.horario.controller.NotificationController;
 import hft.wiinf.de.horario.controller.PersonController;
+import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
-import hft.wiinf.de.horario.model.Invitation;
+import hft.wiinf.de.horario.model.InvitationString;
 import hft.wiinf.de.horario.model.Person;
 import hft.wiinf.de.horario.model.ReceivedHorarioSMS;
 
@@ -104,22 +105,22 @@ public class SmsReceiver extends BroadcastReceiver {
                         fullmessageBuilder.append(previousMessage);
                     }
                     if(checkForInvitationRegexOk(fullmessageBuilder.toString())){
-                        Invitation newInvitation = new Invitation(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""), new Date());
-                        String eventDateTimeString  = newInvitation.getStartTime() + " " + newInvitation.getStartDate();
+                        InvitationString newInvitationString = new InvitationString(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""), new Date());
+                        String eventDateTimeString = newInvitationString.getStartTime() + " " + newInvitationString.getStartDate();
                         SimpleDateFormat format = new SimpleDateFormat("HH:mm dd.MM.yyyy");
                         try {
                             Date eventDateTime = format.parse(eventDateTimeString);
-                            if(eventDateTime.after(newInvitation.getDateReceived())){
+                            if (eventDateTime.after(newInvitationString.getDateReceived())) {
 
-                                if(!InvitationController.alreadyInvited(newInvitation) && !InvitationController.eventAlreadySaved(newInvitation)) {
-                                    InvitationController.saveInvitation(newInvitation);
-                                    NotificationController.sendInvitationNotification(context, newInvitation);
+                                if (!InvitationController.alreadyInvited(newInvitationString) && !InvitationController.eventAlreadySaved(newInvitationString)) {
+                                    InvitationController.saveInvitation(newInvitationString);
+                                    NotificationController.sendInvitationNotification(context, newInvitationString);
                                 }else{
                                     Log.d("louis", "already invited");
                                 }
                             }else{
                                 Log.d("louis", "received expired invitation");
-                                Log.d("louis", eventDateTimeString + " " + newInvitation.getDateReceived());
+                                Log.d("louis", eventDateTimeString + " " + newInvitationString.getDateReceived());
                             }
                         }catch(ParseException e){
                             e.printStackTrace();
@@ -133,15 +134,15 @@ public class SmsReceiver extends BroadcastReceiver {
                         fullmessageBuilder.append(previousMessage);
                     }
                     if(checkForInvitationRegexOk(fullmessageBuilder.toString())){
-                        Invitation newInvitation = new Invitation(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""), new Date());
-                        String eventDateTimeString  = newInvitation.getStartTime() + " " + newInvitation.getStartDate();
+                        InvitationString newInvitationString = new InvitationString(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""), new Date());
+                        String eventDateTimeString = newInvitationString.getStartTime() + " " + newInvitationString.getStartDate();
                         SimpleDateFormat format = new SimpleDateFormat("HH:mm dd.MM.yyyy");
                         try {
                             Date eventDateTime = format.parse(eventDateTimeString);
-                            if(eventDateTime.after(newInvitation.getDateReceived())){
-                                if(!InvitationController.alreadyInvited(newInvitation)&& !InvitationController.eventAlreadySaved(newInvitation)) {
-                                    InvitationController.saveInvitation(newInvitation);
-                                    NotificationController.sendInvitationNotification(context, newInvitation);
+                            if (eventDateTime.after(newInvitationString.getDateReceived())) {
+                                if (!InvitationController.alreadyInvited(newInvitationString) && !InvitationController.eventAlreadySaved(newInvitationString)) {
+                                    InvitationController.saveInvitation(newInvitationString);
+                                    NotificationController.sendInvitationNotification(context, newInvitationString);
                                 }
                             }else{
                                 Log.d("louis", "received expired invitation" + "test");
@@ -298,7 +299,6 @@ public class SmsReceiver extends BroadcastReceiver {
      */
     private void parseHorarioSMSAndUpdate(List<ReceivedHorarioSMS> unreadSMS, Context context) {
         for (ReceivedHorarioSMS singleUnreadSMS : unreadSMS) {
-            //Person person = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
             Person person = PersonController.getPersonViaPhoneNumber(singleUnreadSMS.getPhonenumber());
             if (person == null) {
                 person = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
@@ -311,7 +311,7 @@ public class SmsReceiver extends BroadcastReceiver {
             if (savedContactExisting != null) {
                 person.setName(savedContactExisting);
             } else {
-                person.setName(person.getName() + " (" + singleUnreadSMS.getPhonenumber() + ")");
+                person.setName(singleUnreadSMS.getName() + " (" + singleUnreadSMS.getPhonenumber() + ")");
             }
             Long eventIdInSMS = Long.valueOf(singleUnreadSMS.getCreatorEventId());
             if (!EventController.checkIfEventIsInDatabaseThroughId(eventIdInSMS)) {
@@ -328,11 +328,14 @@ public class SmsReceiver extends BroadcastReceiver {
                     //acceptance: look for possible preceding rejections. If yes, then delete person and create new. Else just save the person
                     //do this for each event of the event series
                     for (Event event : myEvents) {
-                        Person personA = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
+                       /*
+                       Bad code ahead
+
+                       Person personA = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
                         String savedContactExistingSerial;
                         savedContactExistingSerial = lookForSavedContact(singleUnreadSMS.getPhonenumber(), context);
 
-                        /*Replace name if saved in contacts*/
+                        *//*Replace name if saved in contacts*//*
                         if (savedContactExistingSerial != null) {
                             personA.setName(savedContactExistingSerial);
                         } else {
@@ -363,17 +366,20 @@ public class SmsReceiver extends BroadcastReceiver {
                             PersonController.savePerson(personA);
                         }
 
-
+                        Good code ahead
+                        */
+                        EventPersonController.addOrGetEventPerson(event, person, AcceptedState.ACCEPTED);
+                        EventPersonController.changeStatus(event, person, AcceptedState.ACCEPTED, null);
                     }
                 } else {
                     //cancellation: look for possible preceding acceptance. If yes, then delete person and create new. Else just save the person
                     //do this for each event of the event series
                     for (Event event : myEvents) {
-                        Person personB = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
+                        /*Person personB = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
                         String savedContactExistingSerial;
                         savedContactExistingSerial = lookForSavedContact(singleUnreadSMS.getPhonenumber(), context);
 
-                        /*Replace name if saved in contacts*/
+                        *//*Replace name if saved in contacts*//*
                         if (savedContactExistingSerial != null) {
                             personB.setName(savedContactExistingSerial);
                         } else {
@@ -404,7 +410,9 @@ public class SmsReceiver extends BroadcastReceiver {
                             personB.setCanceledEvent(event);
                             personB.setRejectionReason(singleUnreadSMS.getExcuse());
                             PersonController.savePerson(personB);
-                        }
+                        }*/
+                        EventPersonController.addOrGetEventPerson(event, person, AcceptedState.REJECTED);
+                        EventPersonController.changeStatus(event, person, AcceptedState.REJECTED, singleUnreadSMS.getExcuse());
                     }
                 }
             } else {
@@ -414,7 +422,7 @@ public class SmsReceiver extends BroadcastReceiver {
                 boolean hasRejectedEarlier = false;
                 if (singleUnreadSMS.isAcceptance()) {
                     //acceptance: look for possible preceding rejection. If yes, then delete person and create new. Else just save the person
-                    List<Person> allRejections = PersonController.getEventCancelledPersons(EventController.getEventById(eventIdInSMS));
+                    /*List<Person> allRejections = PersonController.getEventCancelledPersons(EventController.getEventById(eventIdInSMS));
                     List<Person> allAcceptances = PersonController.getEventAcceptedPersons(EventController.getEventById(eventIdInSMS));
                     for (Person personRejected : allRejections) {
                         personRejected.setPhoneNumber(shortifyPhoneNumber(personRejected.getPhoneNumber()));
@@ -438,10 +446,15 @@ public class SmsReceiver extends BroadcastReceiver {
                         person.setPhoneNumber(shortifyPhoneNumber(person.getPhoneNumber()));
                         person.setAcceptedEvent(EventController.getEventById(eventIdInSMS));
                         PersonController.savePerson(person);
+                    }*/
+                    Event event = EventController.getEventById(eventIdInSMS);
+                    if (event != null) {
+                        EventPersonController.addOrGetEventPerson(event, person, AcceptedState.ACCEPTED);
+                        EventPersonController.changeStatus(event, person, AcceptedState.ACCEPTED, null);
                     }
                 } else {
                     //cancellation: look for possible preceding acceptance. If yes, then delete person and create new. Else just save the person
-                    List<Person> allAcceptances = PersonController.getEventAcceptedPersons(EventController.getEventById(eventIdInSMS));
+                    /*List<Person> allAcceptances = PersonController.getEventAcceptedPersons(EventController.getEventById(eventIdInSMS));
                     List<Person> allRejections = PersonController.getEventCancelledPersons(EventController.getEventById(eventIdInSMS));
                     for (Person personAccepted : allAcceptances) {
                         personAccepted.setPhoneNumber(shortifyPhoneNumber(personAccepted.getPhoneNumber()));
@@ -467,6 +480,11 @@ public class SmsReceiver extends BroadcastReceiver {
                         person.setCanceledEvent(EventController.getEventById(eventIdInSMS));
                         person.setRejectionReason(singleUnreadSMS.getExcuse());
                         PersonController.savePerson(person);
+                    }*/
+                    Event event = EventController.getEventById(eventIdInSMS);
+                    if (event != null) {
+                        EventPersonController.addOrGetEventPerson(event, person, AcceptedState.REJECTED);
+                        EventPersonController.changeStatus(event, person, AcceptedState.REJECTED, singleUnreadSMS.getExcuse());
                     }
                 }
             }

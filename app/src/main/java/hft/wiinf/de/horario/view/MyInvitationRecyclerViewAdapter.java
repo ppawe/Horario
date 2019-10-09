@@ -9,7 +9,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import hft.wiinf.de.horario.R;
-import hft.wiinf.de.horario.model.Invitation;
+import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.view.InvitationFragment.OnListFragmentInteractionListener;
 
 /*
@@ -18,14 +18,14 @@ Each view has an onClickListener that calls TabActivity.onListFragmentInteractio
  */
 public class MyInvitationRecyclerViewAdapter extends RecyclerView.Adapter<MyInvitationRecyclerViewAdapter.ViewHolder> {
 
-    private final List<Invitation> mValues;
+    private final List<Event> mValues;
     private final OnListFragmentInteractionListener mListener;
     private final boolean isListEmpty;
 
-    public MyInvitationRecyclerViewAdapter(List<Invitation> items, OnListFragmentInteractionListener listener) {
+    public MyInvitationRecyclerViewAdapter(List<Event> items, OnListFragmentInteractionListener listener) {
         mValues = items;
         if(items.size() == 0){
-            mValues.add(new Invitation());
+            mValues.add(new Event());
             isListEmpty = true;
         }else {
             isListEmpty = false;
@@ -44,7 +44,7 @@ public class MyInvitationRecyclerViewAdapter extends RecyclerView.Adapter<MyInvi
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
         if(!isListEmpty) {
-            holder.mContentView.setText(mValues.get(position).getTitle());
+            holder.mContentView.setText(mValues.get(position).getShortTitle());
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -70,7 +70,7 @@ public class MyInvitationRecyclerViewAdapter extends RecyclerView.Adapter<MyInvi
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
         public final TextView mContentView;
-        public Invitation mItem;
+        public Event mItem;
 
         public ViewHolder(View view) {
             super(view);

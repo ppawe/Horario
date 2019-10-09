@@ -21,7 +21,9 @@ import java.util.List;
 
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.EventController;
+import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.controller.NotificationController;
+import hft.wiinf.de.horario.controller.PersonController;
 import hft.wiinf.de.horario.controller.SendSmsController;
 import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
@@ -162,8 +164,7 @@ public class SavedEventDetailsFragment extends Fragment {
                         //and send a SMS
                         if (event.getRepetition() == Repetition.NONE) {
                             Toast.makeText(getContext(), R.string.accept_event_hint, Toast.LENGTH_SHORT).show();
-                            event.setAccepted(AcceptedState.ACCEPTED);
-                            EventController.saveEvent(event);
+                            EventPersonController.changeStatus(event, PersonController.getPersonWhoIam(), AcceptedState.ACCEPTED, null);
                             new SendSmsController().sendSMS(getContext(), phNumber, null, true,
                                     creatorEventId, shortTitle);
                             NotificationController.setAlarmForNotification(getContext(), event);
@@ -172,15 +173,14 @@ public class SavedEventDetailsFragment extends Fragment {
                             // If have the Event a Repetition it set all Events to Accepted and send a SMS
                         } else {
                             Toast.makeText(getContext(), R.string.accept_event_hint, Toast.LENGTH_SHORT).show();
-                            //Create a List with all Events with the same CreatorEventId an set the State
+                            //Create a List with all Events with the same startId an set the State
                             //to Accepted
-                            List<Event> findMyEventsByEventCreatorId =
-                                    new Select().from(Event.class).where("CreatorEventId=?",
-                                            String.valueOf(event.getCreatorEventId())).execute();
-                            for (Event x : findMyEventsByEventCreatorId) {
-                                x.setAccepted(AcceptedState.ACCEPTED);
+                            List<Event> findMyEventsByStartId =
+                                    new Select().from(Event.class).where("startId=?",
+                                            String.valueOf(event.getId())).execute();
+                            for (Event x : findMyEventsByStartId) {
+                                EventPersonController.changeStatus(x, PersonController.getPersonWhoIam(), AcceptedState.ACCEPTED, null);
                                 NotificationController.setAlarmForNotification(getContext(), x);
-                                EventController.saveEvent(x);
                             }
                             new SendSmsController().sendSMS(getContext(), phNumber, null, true,
                                     creatorEventId, shortTitle);

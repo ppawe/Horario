@@ -49,7 +49,7 @@ import hft.wiinf.de.horario.controller.ScanResultReceiverController;
 import hft.wiinf.de.horario.controller.SendSmsController;
 import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
-import hft.wiinf.de.horario.model.Invitation;
+import hft.wiinf.de.horario.model.InvitationString;
 import hft.wiinf.de.horario.model.Person;
 import hft.wiinf.de.horario.model.Repetition;
 import hft.wiinf.de.horario.view.CalendarActivity;
@@ -74,12 +74,12 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     private static int startTab;
     private Person personMe;
     Person personEventCreator;
-    Invitation invitation;
+    Event pendingEvent;
 
     Event singleEvent;
     //Index: 0 = CreatorID; 1 = StartDate; 2 = EndDate; 3 = StartTime; 4 = EndTime;
     //       5 = Repetition; 6 = ShortTitle; 7 = Place; 8 = Description;  9 = EventCreatorName
-    private String eventCreatorId, eventStartDate, eventEndDate, eventStartTime, eventEndTime, eventRepetition, eventShortTitle, eventPlace,
+    private String eventCreatorEventId, eventStartDate, eventEndDate, eventStartTime, eventEndTime, eventRepetition, eventShortTitle, eventPlace,
             eventDescription, eventCreatorName, eventCreatorPhoneNumber;
     private String hourOfDay, minutesOfDay, year, month, day;
 
@@ -99,9 +99,9 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     }
 
     @Override
-    public void onListFragmentInteraction(Invitation invitation) {
+    public void onListFragmentInteraction(Event event) {
 
-        this.invitation = invitation;
+        this.pendingEvent = event;
 
         if (mViewPager.getCurrentItem() == 0) {
             openActionDialogAfterScanning("EventOverview");
@@ -348,8 +348,8 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
             //Put StringBuffer in an Array and split the Values to new String Variables
             //Index: 0 = CreatorID; 1 = StartDate; 2 = EndDate; 3 = StartTime; 4 = EndTime;
             //       5 = Repetition; 6 = ShortTitle; 7 = Place; 8 = Description;  9 = EventCreatorName; 10 = phoneNumber;
-            String[] eventStringBufferArray = invitation.getInvitation().split("\\|");
-            eventCreatorId = eventStringBufferArray[0].trim();
+            String[] eventStringBufferArray = pendingEvent.getInvitation().split("\\|");
+            eventCreatorEventId = eventStringBufferArray[0].trim();
             eventStartDate = eventStringBufferArray[1].trim();
             eventEndDate = eventStringBufferArray[2].trim();
             eventStartTime = eventStringBufferArray[3].trim();
@@ -393,7 +393,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                     qrScanner_result_eventSave.setVisibility(View.GONE);
                     qrScanner_result_abort.setVisibility(View.VISIBLE);
                     qrScanner_result_description.setText(getString(R.string.wrongQRCodeResult) + "\n" + "\n"
-                            + invitation.getInvitation() + "\n" + "\n" + getString(R.string.notAsEventSaveable));
+                            + pendingEvent.getInvitation() + "\n" + "\n" + getString(R.string.notAsEventSaveable));
 
                     qrScanner_result_toCalender.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -434,7 +434,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
             qrScanner_result_eventSave.setVisibility(View.GONE);
             qrScanner_result_abort.setVisibility(View.VISIBLE);
             qrScanner_result_description.setText(getString(R.string.wrongQRCodeResult) + "\n" + "\n"
-                    + invitation.getInvitation() + "\n" + "\n" + getString(R.string.notAsEventSaveable));
+                    + pendingEvent.getInvitation() + "\n" + "\n" + getString(R.string.notAsEventSaveable));
 
             qrScanner_result_abort.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -449,12 +449,12 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     // "Catch" the ScanningResult and throw the Content to the processing Method
     @Override
     public void scanResultData(String whichFragment, String codeContent) {
-        invitation = new Invitation(codeContent, new Date());
-        String eventDateTimeString  = invitation.getStartTime() + " " + invitation.getStartDate();
+        pendingEvent = new InvitationString(codeContent, new Date());
+        String eventDateTimeString = pendingEvent.getStartTime() + " " + pendingEvent.getStartDate();
         SimpleDateFormat format = new SimpleDateFormat("HH:mm DD.MM.YYYY");
         try {
             Date eventDateTime = format.parse(eventDateTimeString);
-            if(eventDateTime.after(invitation.getDateReceived())){
+            if (eventDateTime.after(pendingEvent.getDateReceived())) {
                 openActionDialogAfterScanning(whichFragment);
             }else{
                 Toast.makeText(getContext(), R.string.event_is_in_past, Toast.LENGTH_SHORT).show();
@@ -541,8 +541,8 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         try {
             if (getIntent() != null && getIntent().getStringExtra("id") != null) {
                 Log.d("louis", getIntent().getStringExtra("id"));
-                invitation = InvitationController.getInvitationById(getIntent().getStringExtra("id"));
-                if (invitation != null) {
+                pendingEvent = InvitationController.getInvitationById(getIntent().getStringExtra("id"));
+                if (pendingEvent != null) {
                     openActionDialogAfterScanning("EventOverview");
                 }
             }
@@ -731,14 +731,13 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                         Calendar checkEndTime = getEndTimeEvent();
 
                         //check if Event is n Database or not
-                        singleEvent = EventController.checkIfEventIsInDatabase(eventDescription,
-                                eventShortTitle, eventPlace, checkStartTime, checkEndTime);
+                        singleEvent = EventController.getEventViaPhoneAndCreatorEventId(eventCreatorPhoneNumber, eventCreatorEventId);
 
                         //if event is in database
-                        if (singleEvent != null && singleEvent.getAccepted().equals(AcceptedState.WAITING) ||
-                                singleEvent != null && singleEvent.getAccepted().equals(AcceptedState.ACCEPTED)) {
+                        if (singleEvent != null && EventPersonController.getEventPerson(singleEvent, PersonController.getPersonWhoIam()) != null &&
+                                !EventPersonController.getEventPerson(singleEvent, PersonController.getPersonWhoIam()).getStatus().equals("cancelled")) {
                             //finish and restart the activity
-                            invitation.delete();
+                            pendingEvent.delete();
                             /*Intent intent = getIntent();
                             finish();
                             startActivity(intent);*/
@@ -747,7 +746,8 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                             Toast toast = Toast.makeText(v.getContext(), R.string.eventIsInDatabase, Toast.LENGTH_LONG);
                             toast.show();
 
-                        } else if (singleEvent != null && singleEvent.getAccepted().equals(AcceptedState.REJECTED)) {
+                        } else if (singleEvent != null && EventPersonController.getEventPerson(singleEvent, PersonController.getPersonWhoIam()) != null &&
+                                EventPersonController.getEventPerson(singleEvent, PersonController.getPersonWhoIam()).getStatus().equals("cancelled")) {
                             //finish and restart the activity
                             /*Intent intent = getIntent();
                             finish();
@@ -759,7 +759,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                             //if event is not in database
                         } else {
                             alertDialogAskForFinalDecission.dismiss();
-                            invitation.delete();
+                            pendingEvent.delete();
                             savePersonAndEvent();
                         }
                     }
@@ -784,7 +784,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         Event event = new Event(personEventCreator);
 
         //set all things for event
-        event.setCreatorEventId(Long.parseLong(eventCreatorId));
+        event.setCreatorEventId(Long.parseLong(eventCreatorEventId));
         event.setStartTime(getStartTimeEvent().getTime());
         event.setEndTime(getEndTimeEvent().getTime());
         event.setRepetition(getEventRepetition());
@@ -792,25 +792,20 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         event.setPlace(eventPlace);
         event.setDescription(eventDescription);
 
-        //check which button got pressed and set acceptedState
-        if (buttonId == 1) {
-            event.setAccepted(AcceptedState.ACCEPTED);
-            sendSMS(event);
-        } else if (buttonId == 2) {
-            event.setAccepted(AcceptedState.WAITING);
-        }
 
         //check if event is serialevent
         if (event.getRepetition() != Repetition.NONE) {
             event.setEndDate(getEndDateEvent().getTime());
             //save serialevent
             EventController.saveSerialevent(event);
+            event.setStartEvent(event);
+            EventController.saveEvent(event);
             List<Event> savedEvents = EventController.findRepeatingEvents(event.getId());
             for (Event singleEvent : savedEvents) {
                 if (buttonId == 1) {
-                    EventPersonController.addEventPerson(singleEvent, PersonController.getPersonWhoIam(), "accepted");
+                    EventPersonController.addOrGetEventPerson(singleEvent, PersonController.getPersonWhoIam(), AcceptedState.ACCEPTED);
                 } else if (buttonId == 2) {
-                    EventPersonController.addEventPerson(singleEvent, PersonController.getPersonWhoIam(), "pending");
+                    EventPersonController.addOrGetEventPerson(singleEvent, PersonController.getPersonWhoIam(), AcceptedState.WAITING);
                 }
             }
         } else {
@@ -818,13 +813,17 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
             EventController.saveEvent(event);
         }
 
-        if (event.getAccepted().equals(AcceptedState.ACCEPTED)) {
+        if (buttonId == 1) {
+            EventPersonController.addOrGetEventPerson(event, PersonController.getPersonWhoIam(), AcceptedState.ACCEPTED);
+            sendSMS(event);
             NotificationController.setAlarmForNotification(getApplicationContext(), event);
+            Toast.makeText(getContext(), R.string.save_event, Toast.LENGTH_SHORT).show();
+        } else if (buttonId == 2) {
+            EventPersonController.addOrGetEventPerson(event, PersonController.getPersonWhoIam(), AcceptedState.WAITING);
+            Toast.makeText(getContext(), R.string.save_event, Toast.LENGTH_SHORT).show();
         }
 
-        if (!event.getAccepted().equals(AcceptedState.REJECTED)) {
-            Toast.makeText(getContext(), R.string.save_event, Toast.LENGTH_SHORT).show();
-
+        if (buttonId != 3) {
             //Restart the TabActivity an Reload all Views
             Intent intent = getIntent();
             finish();
@@ -851,8 +850,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         Calendar checkStartTime = getStartTimeEvent();
         Calendar checkEndTime = getEndTimeEvent();
         //check if Event is n Database or not
-        singleEvent = EventController.checkIfEventIsInDatabase(eventDescription,
-                eventShortTitle, eventPlace, checkStartTime, checkEndTime);
+        singleEvent = EventController.getEventViaPhoneAndCreatorEventId(eventCreatorPhoneNumber, eventCreatorEventId);
 
         afterScanningDialogAction.cancel();
         EventRejectEventFragment eventRejectEventFragment = new EventRejectEventFragment();
@@ -861,14 +859,13 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         //if event is in not database
         if (singleEvent == null) {
             //set all things for event
-            event.setCreatorEventId(Long.parseLong(eventCreatorId));
+            event.setCreatorEventId(Long.parseLong(eventCreatorEventId));
             event.setStartTime(getStartTimeEvent().getTime());
             event.setEndTime(getEndTimeEvent().getTime());
             event.setRepetition(getEventRepetition());
             event.setShortTitle(eventShortTitle);
             event.setPlace(eventPlace);
             event.setDescription(eventDescription);
-            event.setAccepted(AcceptedState.REJECTED);
 
             //check if event is serialevent
             if (event.getRepetition() != Repetition.NONE) {
@@ -879,7 +876,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                 //save the one event
                 EventController.saveEvent(event);
             }
-            invitation.delete();
+            pendingEvent.delete();
 
             bundleAcceptedEventId.putLong("EventId", event.getId());
 
@@ -917,6 +914,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
             person.setName(eventCreatorName);
             person.setPhoneNumber(eventCreatorPhoneNumber);
             person.save();
+            event.setCreator(person);
         }
 
     }
@@ -937,7 +935,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         Log.i("EVENTZEIT", now.getTime().toString());
         if (getEventRepetition() == Repetition.NONE) {
             if (getStartTimeEvent().getTime().before(now.getTime())) {
-                invitation.delete();
+                pendingEvent.delete();
                 Toast.makeText(this, R.string.startTime_afterScanning_past, Toast.LENGTH_SHORT).show();
                 return true;
             } else {
@@ -946,7 +944,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
 
         } else {
             if (getEndDateEvent().getTime().before(now.getTime())) {
-                invitation.delete();
+                pendingEvent.delete();
                 Toast.makeText(this, R.string.startTime_afterScanning_past, Toast.LENGTH_SHORT).show();
                 return true;
             } else {

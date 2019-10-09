@@ -10,6 +10,7 @@ import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +29,7 @@ import java.util.Objects;
 
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.EventController;
+import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.controller.PersonController;
 import hft.wiinf.de.horario.controller.SendSmsController;
 import hft.wiinf.de.horario.model.Event;
@@ -100,15 +102,17 @@ public class MyOwnEventDetailsFragment extends Fragment {
                                     requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 2);
                                 }
                                 //check if the number has already been invited or accepted the invitation
-                                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
-                                    List<Person> participants = PersonController.getEventAcceptedPersons(selectedEvent);
+                                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED &&
+                                        getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
+                                    List<Person> participants = EventPersonController.getEventParticipants(selectedEvent);
                                     boolean alreadyInvited = false;
                                     for(Person participant : participants){
                                         if(participant.getPhoneNumber().equals(sendToNumber)){
                                             alreadyInvited = true;
                                         }
                                     }
-                                    if(alreadyInvited || PersonController.personIsInvited(sendToNumber,selectedEvent)){
+                                    if (alreadyInvited || PersonController.getPersonViaPhoneNumber(sendToNumber) != null &&
+                                            EventPersonController.personIsInvitedToEvent(selectedEvent, PersonController.getPersonViaPhoneNumber(sendToNumber))) {
                                         Toast.makeText(getContext(), "Person nimmt bereits teil oder wurde bereits eingeladen.", Toast.LENGTH_SHORT).show();
                                         dialog.cancel();
                                     }else {
@@ -117,6 +121,7 @@ public class MyOwnEventDetailsFragment extends Fragment {
                                     }
                                 } else {
                                     Toast.makeText(getContext(), R.string.sending_sms_impossible, Toast.LENGTH_SHORT).show();
+                                    Log.d("louis", getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY) ? "true" : "false");
                                 }
                             }
                             return false;

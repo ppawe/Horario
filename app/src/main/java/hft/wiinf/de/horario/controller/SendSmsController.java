@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import hft.wiinf.de.horario.R;
+import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.FailedSMS;
 import hft.wiinf.de.horario.model.Person;
@@ -79,9 +80,9 @@ public class SendSmsController extends BroadcastReceiver {
             }else {
                 smsManager.sendTextMessage(sms_recipient_no, null, message, null, null);
             }
-            Person invitedPerson = new Person(sms_recipient_no,"unknown");
-            invitedPerson.setPendingEvent(event);
+            Person invitedPerson = PersonController.addPerson(sms_recipient_no, "unknown");
             invitedPerson.save();
+            EventPersonController.addOrGetEventPerson(event, invitedPerson, AcceptedState.WAITING);
             Toast.makeText(context,"Einladung wurde verschickt",Toast.LENGTH_SHORT).show();
         }catch (Exception e){
             Log.d("louis", e.getMessage());

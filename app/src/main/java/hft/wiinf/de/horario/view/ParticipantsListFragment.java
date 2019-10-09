@@ -135,7 +135,7 @@ public class ParticipantsListFragment extends Fragment {
             participantsArray.add(new Participant(nameToSave, EventPersonController.getEventPerson(event, personCancelled).getRejectionReason()));
         }
 
-        final ArrayAdapter adapter = new ArrayAdapter(context, R.layout.list_row, participantsArray) {
+        final ArrayAdapter<Participant> adapter = new ArrayAdapter<Participant>(context, R.layout.list_row, participantsArray) {
             @NonNull
             @Override
             public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {

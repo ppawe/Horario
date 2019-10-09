@@ -12,8 +12,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import hft.wiinf.de.horario.R;
+import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.controller.InvitationController;
-import hft.wiinf.de.horario.model.Invitation;
+import hft.wiinf.de.horario.controller.PersonController;
+import hft.wiinf.de.horario.model.Event;
 
 
 /**
@@ -71,7 +73,7 @@ public class InvitationFragment extends Fragment {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
             InvitationController.deleteExpiredInvitations();
-            recyclerView.setAdapter(new MyInvitationRecyclerViewAdapter(InvitationController.getAllInvitations(), mListener));
+            recyclerView.setAdapter(new MyInvitationRecyclerViewAdapter(EventPersonController.getAllPendingEventsForPersonWithoutSerials(PersonController.getPersonWhoIam()), mListener));
         }
         return parentView;
     }
@@ -106,6 +108,6 @@ public class InvitationFragment extends Fragment {
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(Invitation item);
+        void onListFragmentInteraction(Event item);
     }
 }

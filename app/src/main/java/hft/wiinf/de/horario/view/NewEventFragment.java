@@ -46,6 +46,7 @@ import hft.wiinf.de.horario.controller.EventController;
 import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.controller.NotificationController;
 import hft.wiinf.de.horario.controller.PersonController;
+import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.Person;
 import hft.wiinf.de.horario.model.Repetition;
@@ -402,12 +403,12 @@ public class NewEventFragment extends Fragment {
             EventController.saveSerialevent(event);
             List<Event> savedEvents = EventController.findRepeatingEvents(event.getId());
             for (Event singleEvent : savedEvents) {
-                EventPersonController.addEventPerson(singleEvent, me, "accepted");
+                EventPersonController.addOrGetEventPerson(singleEvent, me, AcceptedState.ACCEPTED);
             }
         } else {
             EventController.saveEvent(event);
         }
-        EventPersonController.addEventPerson(event, me, "accepted");
+        EventPersonController.addOrGetEventPerson(event, me, AcceptedState.ACCEPTED);
         if (!EventController.createdEventsYet()) {
             Long date = System.currentTimeMillis();
             saveReadDate(String.valueOf(date));

@@ -7,10 +7,14 @@ import com.activeandroid.query.Select;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.List;
 
 import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
+import hft.wiinf.de.horario.model.InvitationString;
+import hft.wiinf.de.horario.model.Person;
+import hft.wiinf.de.horario.model.Repetition;
 
 public class EventController {
     //saves (update or create)an event
@@ -35,21 +39,14 @@ public class EventController {
         return Event.load(Event.class, id);
     }
 
-    // what this is meant to do: get one of your own events via its Id and all the serial events following it
-    // what it actually does: get someone else's event that has the creatorEventId as its Id in
-    // THEIR database AND happens to have its startEvent saved with that same Id in YOUR database
+    // get one of your own events via its Id and all the serial events following it
     public static List<Event> getMyEventsByCreatorEventId(@NonNull Long creatorEventId) {
-        return new Select().from(Event.class).where("creatorEventId=? AND startEvent=?", creatorEventId, creatorEventId).execute();
+        return new Select().from(Event.class).where("creator = 1 AND startEvent=?", creatorEventId).execute();
     }
 
     //find the list of events that start in the given period (enddate is not included!)
     public static List<Event> findEventsByTimePeriod(Date startDate, Date endDate) {
         return new Select().from(Event.class).where("starttime between ? AND ?", startDate.getTime(), endDate.getTime() - 1).orderBy("startTime,endTime,shortTitle").execute();
-    }
-
-    //get a list of all events
-    public static List<Event> findMyEvents() {
-        return new Select().from(Event.class).orderBy("startTime,endTime,shortTitle").execute();
     }
 
     //get a list of all events that I accepted
@@ -58,16 +55,24 @@ public class EventController {
     }
 
     public static List<Event> getAllEvents() {
-        return new Select().from(Event.class).orderBy("startTime, endTime, shortTitle").execute();
+        return new Select().from(Event.class).orderBy("startTime,endTime,shortTitle").execute();
     }
 
     public static boolean createdEventsYet() {
-        List<Event> resultSet = new Select().from(Event.class).execute();
-            return resultSet.size() != 0;
+        return new Select().from(Event.class).exists();
     }
 
     public static List<Event> findMyAcceptedEventsInTheFuture() {
-        return new Select().from(Event.class).where("accepted=? AND startTime>=?", AcceptedState.ACCEPTED, System.currentTimeMillis()).execute();
+        List<Event> events = EventPersonController.getAllAcceptedEventsForPerson(PersonController.getPersonWhoIam());
+        Iterator<Event> i = events.iterator();
+        Date now = new Date();
+        while (i.hasNext()) {
+            Event event = i.next();
+            if (event.getStartTime().before(now)) {
+                i.remove();
+            }
+        }
+        return events;
     }
 
     //find all events that point to the given event as an start event
@@ -123,7 +128,7 @@ public class EventController {
     }
 
     // needs replacing - doesn't do what it says it does
-    // only way to identify an event is the creator's phoneNumber and creatorEventId
+    // only way to identify an event is the creator's phoneNumber and creatorEventId or simply its Id
     public static Event checkIfEventIsInDatabase(String description, String shortTitle,
                                                  String place,
                                                  Calendar startTime, Calendar endTime) {
@@ -137,14 +142,45 @@ public class EventController {
                 .executeSingle();
     }
 
-    /*public static Event getUniqueEvent(String creatorEventId, String creatorPhoneNumber){
-        Person creator = PersonController.
-    }*/
-
     public static boolean checkIfEventIsInDatabaseThroughId(Long eventIdInSMS) {
-        List<Event> resultSet = new Select().from(Event.class).where("Id=?", eventIdInSMS).execute();
-            return resultSet.size() != 0;
+        return new Select().from(Event.class).where("Id=?", eventIdInSMS).exists();
     }
 
+    public static Event getEventViaPhoneAndCreatorEventId(String phoneNumber, String creatorEventId) {
+        Person creator = PersonController.getPersonViaPhoneNumber(phoneNumber);
+        if (creator != null) {
+            return new Select().from(Event.class).where("creator = ?", creator.getId()).and("creatorEventId = ?", creatorEventId).executeSingle();
+        }
+        return null;
+    }
 
+    public static boolean isEventSaved(String phoneNumber, String creatorEventId) {
+        Person creator = PersonController.getPersonViaPhoneNumber(phoneNumber);
+        if (creator != null) {
+            return new Select().from(Person.class).where("creator = ?", creator.getId()).and("creatorEventId = ?", creatorEventId).exists();
+        }
+        return false;
+    }
+
+    public static Event createPendingEventFromInvitation(InvitationString invitationString) {
+        Event event = new Event();
+        event.setRepetition(invitationString.getRepetitionAsRepetition());
+        event.setCreator(PersonController.addPerson(invitationString.getCreatorPhoneNumber(), invitationString.getCreatorName()));
+        event.setCreatorEventId(Long.valueOf(invitationString.getCreatorEventId()));
+        event.setDescription(invitationString.getDescription());
+        event.setEndDate(invitationString.getEndDateAsDate());
+        event.setEndTime(invitationString.getEndTimeAsDate());
+        event.setStartTime(invitationString.getStartTimeAsDate());
+        event.setShortTitle(invitationString.getTitle());
+        event.setPlace(invitationString.getPlace());
+        if (event.getRepetition() == Repetition.NONE) {
+            EventController.saveEvent(event);
+            EventPersonController.addOrGetEventPerson(event, event.getCreator(), AcceptedState.ACCEPTED);
+            EventPersonController.addOrGetEventPerson(event, PersonController.getPersonWhoIam(), AcceptedState.WAITING);
+        } else {
+            EventController.saveSerialevent(event);
+            List<Event> repeatingEvents
+        }
+        return event;
+    }
 }

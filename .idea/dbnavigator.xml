@@ -25,10 +25,10 @@
     <show-object-properties value="true" />
     <loaded-nodes>
       <connection connection-id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77">
-        <schema name="main" object-types="view, constraint, dataset trigger, index, column, table" />
+        <schema name="main" object-types="constraint, dataset trigger, index, table, column" />
       </connection>
       <connection connection-id="3439748a-604c-4273-9fd9-6279c6cdb1c0">
-        <schema name="main" object-types="view, table" />
+        <schema name="main" object-types="table, view" />
       </connection>
     </loaded-nodes>
   </component>
@@ -48,6 +48,7 @@
     <connection id="3439748a-604c-4273-9fd9-6279c6cdb1c0" />
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
+    <filter-actions connection-id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77" dataset="main.eventperson" active-filter-id="EMPTY_FILTER" />
     <filter-actions connection-id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77" dataset="main.persons" active-filter-id="EMPTY_FILTER" />
     <filter-actions connection-id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77" dataset="main.events" active-filter-id="EMPTY_FILTER" />
     <filter-actions connection-id="3439748a-604c-4273-9fd9-6279c6cdb1c0" dataset="main.persons" active-filter-id="EMPTY_FILTER" />
@@ -92,7 +93,7 @@
           <port value="1234" />
           <database value="database" />
           <files>
-            <file path="$USER_HOME$/AndroidStudio/DeviceExplorer/emulator-5554/data/data/hft.wiinf.de.horario/databases/horario.db" schema="main" />
+            <file path="$USER_HOME$/AndroidStudio/DeviceExplorer/Pixel_3a_API_29_test [emulator-5554]/data/data/hft.wiinf.de.horario/databases/horario.db" schema="main" />
           </files>
           <type value="NONE" />
           <user value="" />

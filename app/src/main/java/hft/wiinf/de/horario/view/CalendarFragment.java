@@ -33,6 +33,7 @@ import java.util.Locale;
 
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.EventController;
+import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.controller.InvitationController;
 import hft.wiinf.de.horario.controller.PersonController;
 import hft.wiinf.de.horario.model.AcceptedState;
@@ -246,9 +247,10 @@ public class CalendarFragment extends Fragment {
 
     //is marking the day in the calendar for the parameter date
     public static void updateCompactCalendar() {
-        List<hft.wiinf.de.horario.model.Event> acceptedEvents = EventController.findMyEvents();
+        List<hft.wiinf.de.horario.model.Event> acceptedEvents = EventController.getAllEvents();
         for (int i = 0; i < acceptedEvents.size(); i++) {
-            if (calendarCvCalendar.getEvents(acceptedEvents.get(i).getStartTime().getTime()).size() == 0 && acceptedEvents.get(i).getAccepted() != AcceptedState.REJECTED) {
+            if (calendarCvCalendar.getEvents(acceptedEvents.get(i).getStartTime().getTime()).size() == 0 &&
+                    EventPersonController.getEventPerson(acceptedEvents.get(i), PersonController.getPersonWhoIam()).getStatus().equals(AcceptedState.ACCEPTED)) {
                 Event event = new Event(Color.DKGRAY, acceptedEvents.get(i).getStartTime().getTime());
                 calendarCvCalendar.addEvent(event, true);
             }
@@ -276,9 +278,9 @@ public class CalendarFragment extends Fragment {
             if (eventListCalendar.get(i).getCreator().equals(PersonController.getPersonWhoIam())) {
                 eventsAsAppointments.add(new Appointment(timeFormat.format(eventListCalendar.get(i).getStartTime()) + " - " + timeFormat.format(eventListCalendar.get(i).getEndTime()) + " " + eventListCalendar.get(i).getShortTitle(), 3, eventListCalendar.get(i).getId(), eventListCalendar.get(i).getCreator()));
             } else {
-                if (eventListCalendar.get(i).getAccepted().equals(AcceptedState.ACCEPTED)) {
+                if (EventPersonController.getEventPerson(eventListCalendar.get(i), PersonController.getPersonWhoIam()).getStatus().equals(AcceptedState.ACCEPTED)) {
                     eventsAsAppointments.add(new Appointment(timeFormat.format(eventListCalendar.get(i).getStartTime()) + " - " + timeFormat.format(eventListCalendar.get(i).getEndTime()) + " " + eventListCalendar.get(i).getShortTitle(), 1, eventListCalendar.get(i).getId(), eventListCalendar.get(i).getCreator()));
-                } else if (eventListCalendar.get(i).getAccepted().equals(AcceptedState.WAITING)) {
+                } else if (EventPersonController.getEventPerson(eventListCalendar.get(i), PersonController.getPersonWhoIam()).getStatus().equals(AcceptedState.WAITING)) {
                     eventsAsAppointments.add(new Appointment(timeFormat.format(eventListCalendar.get(i).getStartTime()) + " - " + timeFormat.format(eventListCalendar.get(i).getEndTime()) + " " + eventListCalendar.get(i).getShortTitle(), 2, eventListCalendar.get(i).getId(), eventListCalendar.get(i).getCreator()));
                 }
             }

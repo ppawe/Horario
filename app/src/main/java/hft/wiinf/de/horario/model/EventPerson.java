@@ -7,12 +7,12 @@ import com.activeandroid.annotation.Table;
 @Table(name = "eventperson")
 public class EventPerson extends Model {
 
-    @Column(name = "Person", onDelete = Column.ForeignKeyAction.CASCADE)
+    @Column(onDelete = Column.ForeignKeyAction.CASCADE)
     private Person person;
-    @Column(name = "Event", onDelete = Column.ForeignKeyAction.CASCADE)
+    @Column(onDelete = Column.ForeignKeyAction.CASCADE)
     private Event event;
     @Column
-    private String status;
+    private AcceptedState status;
     @Column
     private String rejectionReason = "";
 
@@ -24,13 +24,13 @@ public class EventPerson extends Model {
         this.event = event;
     }
 
-    public EventPerson(Person person, Event event, String status) {
+    public EventPerson(Person person, Event event, AcceptedState status) {
         this.person = person;
         this.event = event;
         this.status = status;
     }
 
-    public EventPerson(Person person, Event event, String status, String rejectionReason) {
+    public EventPerson(Person person, Event event, AcceptedState status, String rejectionReason) {
         this.person = person;
         this.event = event;
         this.status = status;
@@ -45,11 +45,11 @@ public class EventPerson extends Model {
         this.rejectionReason = rejectionReason;
     }
 
-    public String getStatus() {
+    public AcceptedState getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(AcceptedState status) {
         this.status = status;
     }
 
