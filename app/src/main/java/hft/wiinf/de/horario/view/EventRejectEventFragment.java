@@ -5,10 +5,14 @@
 
 package hft.wiinf.de.horario.view;
 
+import android.Manifest;
 import android.content.Intent;
-import android.support.v4.app.Fragment;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.util.Log;
@@ -31,8 +35,11 @@ import java.text.SimpleDateFormat;
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.TabActivity;
 import hft.wiinf.de.horario.controller.EventController;
+import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.controller.NotificationController;
+import hft.wiinf.de.horario.controller.PersonController;
 import hft.wiinf.de.horario.controller.SendSmsController;
+import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
@@ -147,23 +154,29 @@ public class EventRejectEventFragment extends Fragment {
 
                         //delete alarm for notification
                         NotificationController.deleteAlarmNotification(getContext(), event);
+                        rejectMessage = spinner_reason.getSelectedItem().toString() + "!" + reason_for_rejection.getText().toString();
                         //If an Event of a recurring event is cancelled, all events
                         // of the recurring event are deleted. This way the user can Scan the
                         // Event again and confirm it again.
 
-                        if (event.getStartEvent() != null) {
-                            Event event1 = event.getStartEvent();
-                            EventController.deleteEvent(event1);
+                        if (event.getStartEvent() != null && event.getStartEvent().getId().equals(event.getId())) {
+                            EventPersonController.changeStatusForSerial(event.getStartEvent(), PersonController.getPersonWhoIam(), AcceptedState.REJECTED, rejectMessage);
                         } else {
-                            EventController.deleteEvent(event);
+                            EventPersonController.changeStatus(event, PersonController.getPersonWhoIam(), AcceptedState.REJECTED, rejectMessage);
                         }
                         //SMS
-                        rejectMessage = spinner_reason.getSelectedItem().toString() + "!" + reason_for_rejection.getText().toString();
+
                         creatorEventId = event.getCreatorEventId();
                         Log.i("Absagegrund", rejectMessage);
-                        new SendSmsController().sendSMS(getContext(), phNumber, rejectMessage, false, creatorEventId, shortTitle);
-
-                        Toast.makeText(getContext(), R.string.reject_event_hint, Toast.LENGTH_SHORT).show();
+                        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.SEND_SMS}, 2);
+                        }
+                        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                            new SendSmsController().sendSMS(getContext(), phNumber, rejectMessage, false, creatorEventId, shortTitle);
+                            Toast.makeText(getContext(), R.string.reject_event_hint, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getContext(), "Um einen Termin abzusagen benötigen wir die Berechtigung SMS zu senden", Toast.LENGTH_LONG).show();
+                        }
                         //restart Activity
                         Intent intent = new Intent(getActivity(), TabActivity.class);
                         //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -1,9 +1,13 @@
 package hft.wiinf.de.horario.view;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -163,27 +167,41 @@ public class SavedEventDetailsFragment extends Fragment {
                         //Check the Event if its a SingleEvent it set Accepted State just for this Event
                         //and send a SMS
                         if (event.getRepetition() == Repetition.NONE) {
-                            Toast.makeText(getContext(), R.string.accept_event_hint, Toast.LENGTH_SHORT).show();
-                            EventPersonController.changeStatus(event, PersonController.getPersonWhoIam(), AcceptedState.ACCEPTED, null);
-                            new SendSmsController().sendSMS(getContext(), phNumber, null, true,
-                                    creatorEventId, shortTitle);
-                            NotificationController.setAlarmForNotification(getContext(), event);
+
+
+                            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.SEND_SMS}, 2);
+                            }
+                            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                                new SendSmsController().sendSMS(getContext(), phNumber, null, true,
+                                        creatorEventId, shortTitle);
+                                EventPersonController.changeStatus(event, PersonController.getPersonWhoIam(), AcceptedState.ACCEPTED, null);
+                                Toast.makeText(getContext(), R.string.accept_event_hint, Toast.LENGTH_SHORT).show();
+                                NotificationController.setAlarmForNotification(getContext(), event);
+                            }
                             Intent intent = new Intent(getActivity(), hft.wiinf.de.horario.TabActivity.class);
                             startActivity(intent);
                             // If have the Event a Repetition it set all Events to Accepted and send a SMS
                         } else {
-                            Toast.makeText(getContext(), R.string.accept_event_hint, Toast.LENGTH_SHORT).show();
+
                             //Create a List with all Events with the same startId an set the State
                             //to Accepted
                             List<Event> findMyEventsByStartId =
-                                    new Select().from(Event.class).where("startId=?",
-                                            String.valueOf(event.getId())).execute();
-                            for (Event x : findMyEventsByStartId) {
-                                EventPersonController.changeStatus(x, PersonController.getPersonWhoIam(), AcceptedState.ACCEPTED, null);
-                                NotificationController.setAlarmForNotification(getContext(), x);
+                                    new Select().from(Event.class).where("startEvent = ?",
+                                            String.valueOf(event.getStartEvent().getId())).execute();
+
+                            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.SEND_SMS}, 2);
                             }
-                            new SendSmsController().sendSMS(getContext(), phNumber, null, true,
-                                    creatorEventId, shortTitle);
+                            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                                for (Event x : findMyEventsByStartId) {
+                                    EventPersonController.changeStatus(x, PersonController.getPersonWhoIam(), AcceptedState.ACCEPTED, null);
+                                    NotificationController.setAlarmForNotification(getContext(), x);
+                                }
+                                new SendSmsController().sendSMS(getContext(), phNumber, null, true,
+                                        creatorEventId, shortTitle);
+                                Toast.makeText(getContext(), R.string.accept_event_hint, Toast.LENGTH_SHORT).show();
+                            }
 
                             Intent intent = new Intent(getActivity(), hft.wiinf.de.horario.TabActivity.class);
                             startActivity(intent);

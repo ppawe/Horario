@@ -126,12 +126,12 @@ public class ParticipantsListFragment extends Fragment {
         participantsArray.clear();
         List<Person> allAcceptances = EventPersonController.getEventParticipants(event);
         for (Person personAccepted : allAcceptances) {
-            String nameToSave = "Y:" + personAccepted.getName();
+            String nameToSave = "Y:" + personAccepted.getName() + " (" + personAccepted.getPhoneNumber() + ")";
             participantsArray.add(new Participant(nameToSave));
         }
         List<Person> allCancellations = EventPersonController.getEventCancellations(event);
         for (Person personCancelled : allCancellations) {
-            String nameToSave = "N:" + personCancelled.getName();
+            String nameToSave = "N:" + personCancelled.getName() + " (" + personCancelled.getPhoneNumber() + ")";
             participantsArray.add(new Participant(nameToSave, EventPersonController.getEventPerson(event, personCancelled).getRejectionReason()));
         }
 

@@ -51,9 +51,9 @@ public class NotificationController {
     }
 
 
-    public static void sendInvitationNotification(Context context, InvitationString invitationString) {
+    public static void sendInvitationNotification(Context context, InvitationString invitationString, Event event) {
         Intent intent = new Intent(context, TabActivity.class);
-        intent.putExtra("id", String.valueOf(invitationString.getId()));
+        intent.putExtra("id", String.valueOf(event.getId()));
         //intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,PendingIntent.FLAG_CANCEL_CURRENT);
         createNotificationChannel(context);
@@ -68,7 +68,7 @@ public class NotificationController {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
 // notificationId is a unique int for each notification that you must define
-        notificationManager.notify(invitationString.getId().intValue(), builder.build());
+        notificationManager.notify(event.getId().intValue(), builder.build());
     }
 
     /**

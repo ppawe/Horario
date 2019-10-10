@@ -36,6 +36,7 @@ import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.InvitationString;
 import hft.wiinf.de.horario.model.Person;
 import hft.wiinf.de.horario.model.ReceivedHorarioSMS;
+import hft.wiinf.de.horario.model.Repetition;
 
 /**
  * The type Sms receiver extends a {@link BroadcastReceiver} and reacts each time the phone of the user receives an SMS.
@@ -98,23 +99,26 @@ public class SmsReceiver extends BroadcastReceiver {
                         }
                     }
                     isSMSValidAndParseable = true;
-                }else if(message.length() > 9 && message.substring(0, 19).equals(":HorarioInvitation:")){
+                } else if (message.length() > 19 && message.substring(0, 19).equals(":HorarioInvitation:")) {
                     previousMessages.add(message);
                     StringBuilder fullmessageBuilder = new StringBuilder();
                     for(String previousMessage : previousMessages){
                         fullmessageBuilder.append(previousMessage);
                     }
                     if(checkForInvitationRegexOk(fullmessageBuilder.toString())){
-                        InvitationString newInvitationString = new InvitationString(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""), new Date());
+                        InvitationString newInvitationString = new InvitationString(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""),
+                                new Date(), receivedSMSArray[i].getOriginatingAddress());
                         String eventDateTimeString = newInvitationString.getStartTime() + " " + newInvitationString.getStartDate();
                         SimpleDateFormat format = new SimpleDateFormat("HH:mm dd.MM.yyyy");
                         try {
                             Date eventDateTime = format.parse(eventDateTimeString);
-                            if (eventDateTime.after(newInvitationString.getDateReceived())) {
 
-                                if (!InvitationController.alreadyInvited(newInvitationString) && !InvitationController.eventAlreadySaved(newInvitationString)) {
-                                    InvitationController.saveInvitation(newInvitationString);
-                                    NotificationController.sendInvitationNotification(context, newInvitationString);
+                            if (eventDateTime.after(newInvitationString.getDateReceived()) && newInvitationString.getRepetitionAsRepetition() == Repetition.NONE
+                                    || newInvitationString.getRepetitionAsRepetition() != Repetition.NONE &&
+                                    newInvitationString.getEndDateAsDate().after(newInvitationString.getDateReceived())) {
+                                if (!InvitationController.eventAlreadySaved(newInvitationString)) {
+                                    Event invitedEvent = EventController.createInvitedEventFromInvitation(newInvitationString);
+                                    NotificationController.sendInvitationNotification(context, newInvitationString, invitedEvent);
                                 }else{
                                     Log.d("louis", "already invited");
                                 }
@@ -124,7 +128,7 @@ public class SmsReceiver extends BroadcastReceiver {
                             }
                         }catch(ParseException e){
                             e.printStackTrace();
-                        }
+                        }/**/
 
                     }
                 }else if(previousMessages.size() != 0){
@@ -140,9 +144,9 @@ public class SmsReceiver extends BroadcastReceiver {
                         try {
                             Date eventDateTime = format.parse(eventDateTimeString);
                             if (eventDateTime.after(newInvitationString.getDateReceived())) {
-                                if (!InvitationController.alreadyInvited(newInvitationString) && !InvitationController.eventAlreadySaved(newInvitationString)) {
-                                    InvitationController.saveInvitation(newInvitationString);
-                                    NotificationController.sendInvitationNotification(context, newInvitationString);
+                                if (!InvitationController.eventAlreadySaved(newInvitationString)) {
+                                    Event invitedEvent = EventController.createInvitedEventFromInvitation(newInvitationString);
+                                    NotificationController.sendInvitationNotification(context, newInvitationString, invitedEvent);
                                 }
                             }else{
                                 Log.d("louis", "received expired invitation" + "test");
@@ -302,7 +306,6 @@ public class SmsReceiver extends BroadcastReceiver {
             Person person = PersonController.getPersonViaPhoneNumber(singleUnreadSMS.getPhonenumber());
             if (person == null) {
                 person = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
-                person.save();
             }
             String savedContactExisting;
             savedContactExisting = lookForSavedContact(singleUnreadSMS.getPhonenumber(), context);
@@ -311,8 +314,9 @@ public class SmsReceiver extends BroadcastReceiver {
             if (savedContactExisting != null) {
                 person.setName(savedContactExisting);
             } else {
-                person.setName(singleUnreadSMS.getName() + " (" + singleUnreadSMS.getPhonenumber() + ")");
+                person.setName(singleUnreadSMS.getName());
             }
+            person.save();
             Long eventIdInSMS = Long.valueOf(singleUnreadSMS.getCreatorEventId());
             if (!EventController.checkIfEventIsInDatabaseThroughId(eventIdInSMS)) {
                 addNotification(context, 1, person.getName(), singleUnreadSMS.isAcceptance());

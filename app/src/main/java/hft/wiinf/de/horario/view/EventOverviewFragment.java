@@ -31,8 +31,8 @@ import java.util.List;
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.EventController;
 import hft.wiinf.de.horario.controller.EventPersonController;
-import hft.wiinf.de.horario.controller.InvitationController;
 import hft.wiinf.de.horario.controller.PersonController;
+import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.Person;
 
@@ -99,9 +99,9 @@ public class EventOverviewFragment extends Fragment {
                     appointmentArrayDay.add(new Appointment(timeFormat.format(eventList.get(i).getStartTime()) + " - " + timeFormat.format(eventList.get(i).getEndTime()) + " " + eventList.get(i).getShortTitle(), 3, eventList.get(i).getId(), eventList.get(i).getCreator()));
                 } else {
                     Person me = PersonController.getPersonWhoIam();
-                    if (EventPersonController.getEventPerson(eventList.get(i), me).getStatus().equals("accepted")) {
+                    if (EventPersonController.getEventPerson(eventList.get(i), me).getStatus() == AcceptedState.ACCEPTED) {
                         appointmentArrayDay.add(new Appointment(timeFormat.format(eventList.get(i).getStartTime()) + " - " + timeFormat.format(eventList.get(i).getEndTime()) + " " + eventList.get(i).getShortTitle(), 1, eventList.get(i).getId(), eventList.get(i).getCreator()));
-                    } else if (EventPersonController.getEventPerson(eventList.get(i), me).getStatus().equals("pending")) {
+                    } else if (EventPersonController.getEventPerson(eventList.get(i), me).getStatus() == AcceptedState.WAITING) {
                         appointmentArrayDay.add(new Appointment(timeFormat.format(eventList.get(i).getStartTime()) + " - " + timeFormat.format(eventList.get(i).getEndTime()) + " " + eventList.get(i).getShortTitle(), 2, eventList.get(i).getId(), eventList.get(i).getCreator()));
                     }
                 }
@@ -181,7 +181,7 @@ public class EventOverviewFragment extends Fragment {
         ActionButtonRotateRight = AnimationUtils.loadAnimation(getContext(), R.anim.actionbuttonrotateright);
         ActionButtonRotateLeft = AnimationUtils.loadAnimation(getContext(), R.anim.actionbuttonrotateleft);
         fadeIn = new AlphaAnimation(0.0f, 1.0f);
-        fadeOut= new AlphaAnimation(1.0f, 0.0f);
+        fadeOut = new AlphaAnimation(1.0f, 0.0f);
 
         eventOverviewFcQrScan.hide();
         eventOverviewFcNewEvent.hide();
@@ -311,7 +311,7 @@ public class EventOverviewFragment extends Fragment {
                 fr.replace(R.id.eventOverview_frameLayout, invitationFragment);
                 fr.addToBackStack(null);
                 fr.commit();
-                if (fabIsOpened){
+                if (fabIsOpened) {
                     closeFABMenu();
                 }
             }
@@ -346,7 +346,9 @@ public class EventOverviewFragment extends Fragment {
             }
         });
 
-        eventOverviewTvInvitationNumber.setText(String.valueOf(InvitationController.getNumberOfInvitations()));
+        if (PersonController.getPersonWhoIam() != null) {
+            eventOverviewTvInvitationNumber.setText(String.valueOf(EventPersonController.getNumberOfInvitedEventsForPerson(PersonController.getPersonWhoIam())));
+        }
         return view;
     }
 
@@ -366,7 +368,7 @@ public class EventOverviewFragment extends Fragment {
         eventOverviewFcInvites.show();
         eventOverviewFcNewEvent.show();
         eventOverviewFcMenu.setImageResource(R.drawable.ic_plusmenu);
-        if(InvitationController.getNumberOfInvitations() > 0){
+        if (EventPersonController.getNumberOfInvitedEventsForPerson(PersonController.getPersonWhoIam()) > 0) {
             eventOverviewTvInvitationNumber.startAnimation(fadeIn);
             fadeIn.setDuration(300);
             eventOverviewTvInvitationNumber.setVisibility(View.VISIBLE);
@@ -398,7 +400,9 @@ public class EventOverviewFragment extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        eventOverviewTvInvitationNumber.setText(String.valueOf(InvitationController.getNumberOfInvitations()));
+        if (PersonController.getPersonWhoIam() != null) {
+            eventOverviewTvInvitationNumber.setText(String.valueOf(EventPersonController.getNumberOfInvitedEventsForPerson(PersonController.getPersonWhoIam())));
+        }
     }
 }
 

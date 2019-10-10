@@ -49,9 +49,9 @@ public class EventController {
         return new Select().from(Event.class).where("starttime between ? AND ?", startDate.getTime(), endDate.getTime() - 1).orderBy("startTime,endTime,shortTitle").execute();
     }
 
-    //get a list of all events that I accepted
+    //needs changing
     public static List<Event> findMyAcceptedEvents() {
-        return new Select().from(Event.class).where("accepted=?", true).orderBy("startTime,endTime,shortTitle").execute();
+        return new Select().from(Event.class).where("accepted=?", AcceptedState.ACCEPTED).orderBy("startTime,endTime,shortTitle").execute();
     }
 
     public static List<Event> getAllEvents() {
@@ -98,8 +98,10 @@ public class EventController {
                 fieldNumber = Calendar.YEAR;
         }
         //save first event;
+        saveEvent(firstEvent);
         firstEvent.setStartEvent(firstEvent);
         saveEvent(firstEvent);
+
         for (int i = 1; ; i++) {
             //copy first event in new temporary event
             Event repetitionEvent = new Event(firstEvent.getCreator());
@@ -162,10 +164,11 @@ public class EventController {
         return false;
     }
 
-    public static Event createPendingEventFromInvitation(InvitationString invitationString) {
+    public static Event createInvitedEventFromInvitation(InvitationString invitationString) {
+
         Event event = new Event();
         event.setRepetition(invitationString.getRepetitionAsRepetition());
-        event.setCreator(PersonController.addPerson(invitationString.getCreatorPhoneNumber(), invitationString.getCreatorName()));
+        event.setCreator(PersonController.addPerson(invitationString.getReceivedFromNumber() != null ? invitationString.getReceivedFromNumber() : invitationString.getCreatorPhoneNumber(), invitationString.getCreatorName()));
         event.setCreatorEventId(Long.valueOf(invitationString.getCreatorEventId()));
         event.setDescription(invitationString.getDescription());
         event.setEndDate(invitationString.getEndDateAsDate());
@@ -176,10 +179,16 @@ public class EventController {
         if (event.getRepetition() == Repetition.NONE) {
             EventController.saveEvent(event);
             EventPersonController.addOrGetEventPerson(event, event.getCreator(), AcceptedState.ACCEPTED);
-            EventPersonController.addOrGetEventPerson(event, PersonController.getPersonWhoIam(), AcceptedState.WAITING);
+            EventPersonController.addOrGetEventPerson(event, PersonController.getPersonWhoIam(), AcceptedState.INVITED);
         } else {
             EventController.saveSerialevent(event);
-            List<Event> repeatingEvents
+            List<Event> repeatingEvents = findRepeatingEvents(event.getId());
+            Person creator = event.getCreator();
+            Person me = PersonController.getPersonWhoIam();
+            for (Event singleEvent : repeatingEvents) {
+                EventPersonController.addOrGetEventPerson(singleEvent, creator, AcceptedState.ACCEPTED);
+                EventPersonController.addOrGetEventPerson(singleEvent, me, AcceptedState.INVITED);
+            }
         }
         return event;
     }

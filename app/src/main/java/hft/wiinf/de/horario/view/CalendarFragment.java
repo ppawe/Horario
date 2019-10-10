@@ -34,7 +34,6 @@ import java.util.Locale;
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.EventController;
 import hft.wiinf.de.horario.controller.EventPersonController;
-import hft.wiinf.de.horario.controller.InvitationController;
 import hft.wiinf.de.horario.controller.PersonController;
 import hft.wiinf.de.horario.model.AcceptedState;
 
@@ -240,7 +239,9 @@ public class CalendarFragment extends Fragment {
                 closeFABMenu();
             }
         });
-        calendarTvInvitationNumber.setText(String.valueOf(InvitationController.getNumberOfInvitations()));
+        if (PersonController.getPersonWhoIam() != null) {
+            calendarTvInvitationNumber.setText(String.valueOf(EventPersonController.getNumberOfInvitedEventsForPerson(PersonController.getPersonWhoIam())));
+        }
         return view;
     }
 
@@ -324,8 +325,8 @@ public class CalendarFragment extends Fragment {
         calendarFcNewEvent.show();
         calendarFcInvitations.show();
         calendarFcMenu.setImageResource(R.drawable.ic_plusmenu);
-        if(InvitationController.getNumberOfInvitations() > 0){
-            calendarTvInvitationNumber.setText(String.valueOf(InvitationController.getNumberOfInvitations()));
+        if (EventPersonController.getNumberOfInvitedEventsForPerson(PersonController.getPersonWhoIam()) > 0) {
+            calendarTvInvitationNumber.setText(String.valueOf(EventPersonController.getNumberOfInvitedEventsForPerson(PersonController.getPersonWhoIam())));
             calendarTvInvitationNumber.startAnimation(fadeIn);
             fadeIn.setDuration(300);
             calendarTvInvitationNumber.setVisibility(View.VISIBLE);
@@ -353,6 +354,8 @@ public class CalendarFragment extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        calendarTvInvitationNumber.setText(String.valueOf(InvitationController.getNumberOfInvitations()));
+        if (PersonController.getPersonWhoIam() != null) {
+            calendarTvInvitationNumber.setText(String.valueOf(EventPersonController.getNumberOfInvitedEventsForPerson(PersonController.getPersonWhoIam())));
+        }
     }
 }

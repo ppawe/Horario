@@ -15,11 +15,26 @@ public class InvitationString {
 
     private Date dateReceived;
 
+    private String receivedFromNumber;
+
     public InvitationString(String invitation, Date dateReceived) {
         this.invitation = invitation;
         this.dateReceived = dateReceived;
     }
 
+    public InvitationString(String invitation, Date dateReceived, String receivedFromNumber) {
+        this.invitation = invitation;
+        this.dateReceived = dateReceived;
+        this.receivedFromNumber = receivedFromNumber;
+    }
+
+    public String getReceivedFromNumber() {
+        return receivedFromNumber;
+    }
+
+    public void setReceivedFromNumber(String receivedFromNumber) {
+        this.receivedFromNumber = receivedFromNumber;
+    }
 
     public Date getDateReceived() {
         return dateReceived;
@@ -60,9 +75,9 @@ public class InvitationString {
     }
 
     public Date getEndDateAsDate() {
-        SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm dd.MM.yyyy");
         try {
-            return format.parse(getEndDate());
+            return format.parse("23:59 " + getEndDate());
         } catch (ParseException e) {
             e.printStackTrace();
         }
