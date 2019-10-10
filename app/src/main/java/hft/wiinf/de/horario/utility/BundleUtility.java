@@ -41,7 +41,7 @@ public class BundleUtility {
      *
      * @see <a href="https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/os/PersistableBundle.java#49">PersistableBundle Implementation</a>
      */
-    public static boolean isPersistableBundleType(Object value) {
+    private static boolean isPersistableBundleType(Object value) {
         return ((value instanceof PersistableBundle) ||
                 (value instanceof Integer) || (value instanceof int[]) ||
                 (value instanceof Long) || (value instanceof long[]) ||
@@ -56,7 +56,7 @@ public class BundleUtility {
      *
      * @throws IllegalArgumentException if the value type can not be put into the bundle.
      */
-    public static void putIntoBundle(BaseBundle baseBundle, String key, Object value) throws IllegalArgumentException {
+    private static void putIntoBundle(BaseBundle baseBundle, String key, Object value) throws IllegalArgumentException {
         if (value == null) {
             throw new IllegalArgumentException("Unable to determine type of null values");
         } else if (value instanceof Integer) {

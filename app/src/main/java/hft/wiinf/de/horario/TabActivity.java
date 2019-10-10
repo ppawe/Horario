@@ -70,24 +70,24 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     private int PERMISSION_REQUEST_READ_CONTACTS = 2;
     private SectionsPageAdapterActivity mSectionsPageAdapter;
     private ViewPager mViewPager;
-    TabLayout tabLayout;
+    private TabLayout tabLayout;
     private static int startTab;
     private Person personMe;
-    Person personEventCreator;
-    Event invitedEvent;
+    private Person personEventCreator;
+    private Event invitedEvent;
 
-    Event singleEvent;
+    private Event singleEvent;
     //Index: 0 = CreatorID; 1 = StartDate; 2 = EndDate; 3 = StartTime; 4 = EndTime;
     //       5 = Repetition; 6 = ShortTitle; 7 = Place; 8 = Description;  9 = EventCreatorName
     private String eventCreatorEventId, eventStartDate, eventEndDate, eventStartTime, eventEndTime, eventRepetition, eventShortTitle, eventPlace,
             eventDescription, eventCreatorName, eventCreatorPhoneNumber;
     private String hourOfDay, minutesOfDay, year, month, day;
 
-    Calendar myStartTime = Calendar.getInstance();
-    Calendar myEndTime = Calendar.getInstance();
-    Calendar myEndDate = Calendar.getInstance();
+    private Calendar myStartTime = Calendar.getInstance();
+    private Calendar myEndTime = Calendar.getInstance();
+    private Calendar myEndDate = Calendar.getInstance();
 
-    int buttonId = 0;
+    private int buttonId = 0;
     private int counter = 0;
     private int counterSMS = 0;
     private int counterCONTACTS = 0;
@@ -169,7 +169,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         }
     }
 
-    public void checkContactsPermission() {
+    private void checkContactsPermission() {
         if (!areContactPermissionsGranted()) {
             requestContactPermissions();
         } else {
@@ -551,7 +551,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     /**
      * this method opens a Dialog to ask for username if that has not already happened.
      */
-    public void openDialogAskForUsername() {
+    private void openDialogAskForUsername() {
         final AlertDialog.Builder dialogAskForUsername = new AlertDialog.Builder(this);
         dialogAskForUsername.setView(R.layout.dialog_askforusername);
         dialogAskForUsername.setTitle(R.string.titleDialogUsername);
@@ -1204,7 +1204,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     }
 
     // method to read the phone number of the user
-    public void readPhoneNumber() {
+    private void readPhoneNumber() {
         //if permission is granted read the phone number
         TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         @SuppressLint("MissingPermission") String phoneNumber = telephonyManager.getLine1Number();

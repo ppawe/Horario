@@ -20,11 +20,16 @@ import hft.wiinf.de.horario.model.Event;
 
 public class AcceptedEventDetailsFragment extends Fragment {
 
-    Button acceptedEventDetailsButtonShowQR, acceptedEventDetailsButtonRefuseAppointment, acceptedEventDetailButtonDelete;
-    TextView acceptedEventDetailsOrganisatorText, acceptedEventphNumberText, acceptedEventeventDescription;
-    RelativeLayout rLayout_acceptedEvent_helper;
-    Event selectedEvent, event;
-    StringBuffer eventToStringBuffer;
+    Button acceptedEventDetailButtonDelete;
+    Event event;
+    private Button acceptedEventDetailsButtonShowQR;
+    private Button acceptedEventDetailsButtonRefuseAppointment;
+    private TextView acceptedEventDetailsOrganisatorText;
+    private TextView acceptedEventphNumberText;
+    private TextView acceptedEventeventDescription;
+    private RelativeLayout rLayout_acceptedEvent_helper;
+    private Event selectedEvent;
+    private StringBuffer eventToStringBuffer;
 
     public AcceptedEventDetailsFragment() {
         // Required empty public constructor
@@ -32,11 +37,10 @@ public class AcceptedEventDetailsFragment extends Fragment {
 
     // Get the EventIdResultBundle (Long) from the newEventActivity to Start later a DB Request
     @SuppressLint("LongLogTag")
-    public Long getEventID() {
+    private Long getEventID() {
         Bundle MYEventIdBundle = getArguments();
         assert MYEventIdBundle != null;
-        Long MYEventIdLongResult = MYEventIdBundle.getLong("EventId");
-        return MYEventIdLongResult;
+        return MYEventIdBundle.getLong("EventId");
     }
 
     @Override
@@ -115,7 +119,7 @@ public class AcceptedEventDetailsFragment extends Fragment {
         return selectedEvent;
     }
 
-    public void setSelectedEvent(Event selectedEvent) {
+    private void setSelectedEvent(Event selectedEvent) {
         this.selectedEvent = selectedEvent;
     }
 
@@ -175,7 +179,7 @@ public class AcceptedEventDetailsFragment extends Fragment {
         }
     }
 
-    public StringBuffer stringBufferGenerator() {
+    private StringBuffer stringBufferGenerator() {
 
         //Modify the Dateformat form den DB to get a more readable Form for Date and Time disjunct
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");

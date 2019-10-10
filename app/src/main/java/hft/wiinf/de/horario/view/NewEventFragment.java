@@ -54,9 +54,9 @@ import hft.wiinf.de.horario.model.Repetition;
 public class NewEventFragment extends Fragment {
 
     // calendar objects to save the startTime / end Time / endOfRepetition, default: values - today
-    Calendar startTime = Calendar.getInstance();
-    Calendar endTime = Calendar.getInstance();
-    Calendar endOfRepetition = Calendar.getInstance();
+    private Calendar startTime = Calendar.getInstance();
+    private Calendar endTime = Calendar.getInstance();
+    private Calendar endOfRepetition = Calendar.getInstance();
     // elements of the gui
     private EditText editText_description, edittext_shortTitle, edittext_room, edittext_date,
             edittext_startTime, editText_endTime, edittext_userName, editText_endOfRepetition;
@@ -68,7 +68,7 @@ public class NewEventFragment extends Fragment {
     private Person me;
     private DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN);
     private DateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.GERMAN);
-    int counter = 0;
+    private int counter = 0;
     private int PERMISSION_REQUEST_READ_PHONE_STATE = 0;
     private AlertDialog.Builder mAlertDialogBuilder;
     private EditText mPhoneNumber;
@@ -264,7 +264,7 @@ public class NewEventFragment extends Fragment {
         }
     }
 
-    public void getDate() {
+    private void getDate() {
         //close keyboard if it's open
         if (getActivity() != null && getActivity().getCurrentFocus() != null) {
             Context ctx = getContext();
@@ -288,7 +288,7 @@ public class NewEventFragment extends Fragment {
         mDatePickerDialog.show();
     }
 
-    public void getStartTime() {
+    private void getStartTime() {
         //close keyboard if it's open
         if (getActivity() != null && getActivity().getCurrentFocus() != null) {
             Context ctx = getContext();
@@ -314,7 +314,7 @@ public class NewEventFragment extends Fragment {
         mTimePickerDialog.show();
     }
 
-    public void getEndTime() {
+    private void getEndTime() {
         //close keyboard if it's open
         Activity activity = getActivity();
         assert activity != null;
@@ -344,7 +344,7 @@ public class NewEventFragment extends Fragment {
         mTimePickerDialog.show();
     }
 
-    public void getEndOfRepetition() {
+    private void getEndOfRepetition() {
         //close keyboard if it's open
         Activity activity = getActivity();
         assert activity != null;
@@ -374,7 +374,7 @@ public class NewEventFragment extends Fragment {
     }
 
     //if the save button is clicked check the entrys and save the event if everything is ok
-    public void onButtonClickSave() {
+    private void onButtonClickSave() {
         if (checkValidity()) {
             if (me.getPhoneNumber() == null || !me.getPhoneNumber().matches("\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$"))
                 checkPhonePermission();
@@ -385,7 +385,7 @@ public class NewEventFragment extends Fragment {
     }
 
     //read the needed parameters / textfield and save the event
-    public void saveEvent() {
+    private void saveEvent() {
         //save the new user name
         me.setName(edittext_userName.getText().toString());
         PersonController.savePerson(me);
@@ -625,7 +625,7 @@ public class NewEventFragment extends Fragment {
         }
     }
 
-    public boolean isPhonePermissionGranted() {
+    private boolean isPhonePermissionGranted() {
         return ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
     }
 
@@ -758,7 +758,7 @@ public class NewEventFragment extends Fragment {
     /**
      * @// TODO: 05.09.19 remove test regex (\\(555\\)521-5554|\\(555\\)521-5556)
      */
-    public void openDialogAskForPhoneNumber() {
+    private void openDialogAskForPhoneNumber() {
         mAlertDialogBuilder = new android.app.AlertDialog.Builder(getActivity());
         mAlertDialogBuilder.setView(R.layout.dialog_askingforphonenumber);
         mAlertDialogBuilder.setCancelable(true);

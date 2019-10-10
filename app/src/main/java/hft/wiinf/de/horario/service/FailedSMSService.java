@@ -32,11 +32,11 @@ public class FailedSMSService extends JobService {
     /**
      * The Sms.
      */
-    Bundle sms;
+    private Bundle sms;
     /**
      * The Phone state, to check weather it is in service or not
      */
-    int phone_state;
+    private int phone_state;
 
     /**
      * job will check if there is service and if the sim is ready (everything what needs to be checked for sending sms)
@@ -75,7 +75,7 @@ public class FailedSMSService extends JobService {
      *
      * @param failedSMS the failed sms
      */
-    public void sendSMS(FailedSMS failedSMS) {
+    private void sendSMS(FailedSMS failedSMS) {
         try {
             String msg;
             Person me = PersonController.getPersonWhoIam();

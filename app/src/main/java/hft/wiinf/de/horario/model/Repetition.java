@@ -24,5 +24,5 @@ public enum Repetition {
     /**
      * Yearly repetition.
      */
-    YEARLY;
+    YEARLY
 }

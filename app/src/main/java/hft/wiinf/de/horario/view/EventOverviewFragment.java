@@ -38,21 +38,29 @@ import hft.wiinf.de.horario.model.Person;
 
 public class EventOverviewFragment extends Fragment {
 
-    public static Date selectedMonth = new Date();
-    ListView overviewLvList;
-    TextView overviewTvMonth;
-    Context context = null;
-    static DateFormat timeFormat = new SimpleDateFormat("HH:mm");
-    FloatingActionButton eventOverviewFcMenu, eventOverviewFcQrScan, eventOverviewFcNewEvent, eventOverviewFcInvites;
-    boolean fabIsOpened = false;
-    ImageButton overviewBtNext;
-    TextView eventOverview_HiddenIsFloatingMenuOpen, eventOverviewTvInvitationNumber;
-    ImageButton overviewBtPrevious;
-    Animation ActionButtonOpen, ActionButtonClose, ActionButtonRotateRight, ActionButtonRotateLeft;
-    AlphaAnimation fadeIn, fadeOut;
-    ConstraintLayout layout_eventOverview_main;
-    ConstraintLayout layoutOverview;
-    static List<Event> eventList = new ArrayList<>();
+    private static Date selectedMonth = new Date();
+    private static DateFormat timeFormat = new SimpleDateFormat("HH:mm");
+    private static List<Event> eventList = new ArrayList<>();
+    private ListView overviewLvList;
+    private TextView overviewTvMonth;
+    private Context context = null;
+    private FloatingActionButton eventOverviewFcMenu;
+    private FloatingActionButton eventOverviewFcQrScan;
+    private FloatingActionButton eventOverviewFcNewEvent;
+    private FloatingActionButton eventOverviewFcInvites;
+    private boolean fabIsOpened = false;
+    private ImageButton overviewBtNext;
+    private TextView eventOverview_HiddenIsFloatingMenuOpen;
+    private TextView eventOverviewTvInvitationNumber;
+    private ImageButton overviewBtPrevious;
+    private Animation ActionButtonOpen;
+    private Animation ActionButtonClose;
+    private Animation ActionButtonRotateRight;
+    private Animation ActionButtonRotateLeft;
+    private AlphaAnimation fadeIn;
+    private AlphaAnimation fadeOut;
+    private ConstraintLayout layout_eventOverview_main;
+    private ConstraintLayout layoutOverview;
 
 
     public void update() {
@@ -63,7 +71,7 @@ public class EventOverviewFragment extends Fragment {
     }
 
     //get all events for the selected month and save them in a adapter
-    public ArrayAdapter iterateOverMonth(final Date date) {
+    private ArrayAdapter iterateOverMonth(final Date date) {
         ArrayList<Appointment> appointmentArrayDay = new ArrayList<>();
         final ArrayList<Appointment> appointmentArray = new ArrayList<>();
         List<Event> allEvents = EventController.getAllEvents();
@@ -116,8 +124,6 @@ public class EventOverviewFragment extends Fragment {
             appointmentArray.add(new Appointment("Du hast keine Termine diesen Monat", 0));
         }
         return new ArrayAdapter<Appointment>(context, android.R.layout.simple_list_item_1, appointmentArray) {
-            @NonNull
-            @Override
 
             public int getViewTypeCount() {
                 return getCount();
@@ -354,7 +360,7 @@ public class EventOverviewFragment extends Fragment {
 
 
     //Show the menu Buttons
-    public void showFABMenu() {
+    private void showFABMenu() {
 
         eventOverviewFcQrScan.startAnimation(ActionButtonOpen);
         eventOverviewFcNewEvent.startAnimation(ActionButtonOpen);
@@ -377,7 +383,7 @@ public class EventOverviewFragment extends Fragment {
     }
 
     //Hide the menu Buttons
-    public void closeFABMenu() {
+    private void closeFABMenu() {
         if (fabIsOpened) {
             eventOverview_HiddenIsFloatingMenuOpen.setText(R.string.falsch);
             eventOverviewFcQrScan.hide();

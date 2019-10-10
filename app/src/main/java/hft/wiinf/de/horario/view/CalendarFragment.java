@@ -40,27 +40,33 @@ import hft.wiinf.de.horario.model.AcceptedState;
 public class CalendarFragment extends Fragment {
     private static final String TAG = "CalendarFragmentActivity";
 
-    public static CompactCalendarView calendarCvCalendar;
-    ListView calendarLvList;
-    TextView calendarTvMonth;
-    TextView calendarTvDay;
-    TextView calendarIsFloatMenuOpen, calendarTvInvitationNumber;
-    FloatingActionButton calendarFcMenu, calendarFcQrScan, calendarFcNewEvent, calendarFcInvitations;
-    ConstraintLayout cLayout_calendar_main;
-    Context context = null;
+    private static CompactCalendarView calendarCvCalendar;
+    private static DateFormat timeFormat = new SimpleDateFormat("HH:mm");
+    private static Date selectedMonth;
+    private static List<hft.wiinf.de.horario.model.Event> eventListCalendar = new ArrayList<>();
+    private static List<hft.wiinf.de.horario.model.Event> allEvents = new ArrayList<>();
+    private ListView calendarLvList;
+    private TextView calendarTvMonth;
+    private TextView calendarTvDay;
+    private TextView calendarIsFloatMenuOpen;
+    private TextView calendarTvInvitationNumber;
+    private FloatingActionButton calendarFcMenu;
+    private FloatingActionButton calendarFcQrScan;
 
     static DateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
     static DateFormat dayFormat = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
-    static DateFormat timeFormat = new SimpleDateFormat("HH:mm");
-    public static Date selectedMonth;
+    private FloatingActionButton calendarFcNewEvent;
+    private FloatingActionButton calendarFcInvitations;
+    private ConstraintLayout cLayout_calendar_main;
+    private Context context = null;
+    private Animation ActionButtonOpen;
+    private Animation ActionButtonClose;
+    private Animation ActionButtonRotateRight;
+    private Animation ActionButtonRotateLeft;
+    private AlphaAnimation fadeIn;
+    private AlphaAnimation fadeOut;
 
-    static List<hft.wiinf.de.horario.model.Event> eventListCalendar = new ArrayList<>();
-    static List<hft.wiinf.de.horario.model.Event> allEvents = new ArrayList<>();
-
-    Animation ActionButtonOpen, ActionButtonClose, ActionButtonRotateRight, ActionButtonRotateLeft;
-    AlphaAnimation fadeIn, fadeOut;
-
-    public void update(Date date) {
+    private void update(Date date) {
         calendarTvDay.setText(dayFormat.format(date));
         calendarLvList.setAdapter(getAdapter(date));
         calendarTvMonth.setText(monthFormat.format(date));
@@ -106,6 +112,7 @@ public class CalendarFragment extends Fragment {
         today.set(Calendar.SECOND, 0);
         selectedMonth = today.getTime();
         calendarTvMonth.setText(monthFormat.format(today.getTime())); //initialize month field
+
         update(today.getTime());
 
         calendarCvCalendar.setListener(new CompactCalendarView.CompactCalendarViewListener() {
@@ -258,7 +265,7 @@ public class CalendarFragment extends Fragment {
         }
     }
 
-    public ArrayAdapter getAdapter(Date date) {
+    private ArrayAdapter getAdapter(Date date) {
         final ArrayList<Appointment> eventsAsAppointments = new ArrayList<>();
 
         Calendar endOfDay = Calendar.getInstance();
@@ -312,7 +319,7 @@ public class CalendarFragment extends Fragment {
         };
     }
 
-    public void showFABMenu() {
+    private void showFABMenu() {
         calendarFcQrScan.startAnimation(ActionButtonOpen);
         calendarFcNewEvent.startAnimation(ActionButtonOpen);
         calendarFcInvitations.startAnimation(ActionButtonOpen);
@@ -333,7 +340,7 @@ public class CalendarFragment extends Fragment {
         }
     }
 
-    public void closeFABMenu() {
+    private void closeFABMenu() {
         if (calendarIsFloatMenuOpen.getText().equals("true")) {
             calendarFcQrScan.startAnimation(ActionButtonClose);
             calendarFcNewEvent.startAnimation(ActionButtonClose);

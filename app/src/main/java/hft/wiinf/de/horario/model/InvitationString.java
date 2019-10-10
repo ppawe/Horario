@@ -70,7 +70,7 @@ public class InvitationString {
         return null;
     }
 
-    public String getEndDate(){
+    private String getEndDate() {
         return invitation.split(" \\| ")[2];
     }
 
@@ -99,7 +99,7 @@ public class InvitationString {
         return null;
     }
 
-    public String getEndTime(){
+    private String getEndTime() {
         return invitation.split(" \\| ")[4];
     }
 
@@ -114,7 +114,7 @@ public class InvitationString {
         return null;
     }
 
-    public String getRepetition(){
+    private String getRepetition() {
         return invitation.split(" \\| ")[5];
     }
 

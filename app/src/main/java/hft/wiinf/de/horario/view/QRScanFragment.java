@@ -50,8 +50,7 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle saveInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_calendar_qrscan, container, false);
-        return view;
+        return inflater.inflate(R.layout.fragment_calendar_qrscan, container, false);
     }
 
     @SuppressLint("ResourceType")
@@ -61,7 +60,7 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
         checkForSMSPermission();
     }
 
-    public void checkForSMSPermission() {
+    private void checkForSMSPermission() {
         if (!isSendSmsPermissionGranted()) {
             requestSendSmsPermission();
         } else {
@@ -70,8 +69,8 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
         }
     }
 
-    public void startScanner() {
-        IntentIntegrator integrator = new IntentIntegrator(this.getActivity()).forSupportFragment(this);
+    private void startScanner() {
+        IntentIntegrator integrator = IntentIntegrator.forSupportFragment(this);
         integrator.setCaptureActivity(CaptureActivityPortrait.class); //Necessary to use the intern Sensor for Orientation
         integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE);
         integrator.setPrompt(getString(R.string.scannerOverlayer_qrCodeScan) + "\n" +
@@ -83,7 +82,7 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
         integrator.initiateScan();
     }
 
-    public void showCameraPreview() {
+    private void showCameraPreview() {
         //Check if User has permission to start to scan, if not it's start a RequestLoop
         if (!isCameraPermissionGranted()) {
             requestCameraPermission();
@@ -92,7 +91,7 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
         }
     }
 
-    public boolean isCameraPermissionGranted() {
+    private boolean isCameraPermissionGranted() {
         return ContextCompat.checkSelfPermission(mActivity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
     }
 
@@ -102,7 +101,7 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
         requestPermissions(new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
     }
 
-    public boolean isSendSmsPermissionGranted() {
+    private boolean isSendSmsPermissionGranted() {
         return ContextCompat.checkSelfPermission(mActivity, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED;
     }
 
@@ -113,7 +112,7 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_REQUEST_CAMERA: {
                 // for each permission check if the user granted/denied them you may want to group the
@@ -345,8 +344,6 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
                         .replace(R.id.calendar_frameLayout, new CalendarFragment(), "")
                         .commit();
             }
-        } else {
-
         }
     }
 

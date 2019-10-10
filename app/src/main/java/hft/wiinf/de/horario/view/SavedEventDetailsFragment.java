@@ -35,15 +35,20 @@ import hft.wiinf.de.horario.model.Repetition;
 
 public class SavedEventDetailsFragment extends Fragment {
 
-    Button savedEventDetailsButtonRefuseAppointment, savedEventDetailsButtonAcceptAppointment,
-            savedEventDetailsButtonShowQr;
-    RelativeLayout rLayout_savedEvent_helper;
-    TextView savedEventDetailsOrganisatorText, savedEventphNumberText, savedEventeventDescription;
-    Event selectedEvent, event;
-    StringBuffer eventToStringBuffer;
-    AlertDialog mAlertDialog;
-    Long creatorEventId;
-    String shortTitle, phNumber;
+    Event event;
+    private Button savedEventDetailsButtonRefuseAppointment;
+    private Button savedEventDetailsButtonAcceptAppointment;
+    private Button savedEventDetailsButtonShowQr;
+    private RelativeLayout rLayout_savedEvent_helper;
+    private TextView savedEventDetailsOrganisatorText;
+    private TextView savedEventphNumberText;
+    private TextView savedEventeventDescription;
+    private Event selectedEvent;
+    private StringBuffer eventToStringBuffer;
+    private AlertDialog mAlertDialog;
+    private Long creatorEventId;
+    private String shortTitle;
+    private String phNumber;
 
     public SavedEventDetailsFragment() {
         // Required empty public constructor
@@ -51,7 +56,7 @@ public class SavedEventDetailsFragment extends Fragment {
 
     // Get the EventIdResultBundle (Long) from the newEventActivity to Start later a DB Request
     @SuppressLint("LongLogTag")
-    public Long getEventID() {
+    private Long getEventID() {
         Bundle MYEventIdBundle = getArguments();
         assert MYEventIdBundle != null;
         return MYEventIdBundle.getLong("EventId");
@@ -145,7 +150,7 @@ public class SavedEventDetailsFragment extends Fragment {
         return view;
     }
 
-    public void askForPermissionToSave() {
+    private void askForPermissionToSave() {
         final AlertDialog.Builder dialogAskForFinalDecission = new AlertDialog.Builder(getContext());
         dialogAskForFinalDecission.setView(R.layout.dialog_afterrejectevent);
         dialogAskForFinalDecission.setTitle(R.string.titleDialogSaveEvent);
@@ -222,7 +227,7 @@ public class SavedEventDetailsFragment extends Fragment {
         return selectedEvent;
     }
 
-    public void setSelectedEvent(Event selectedEvent) {
+    private void setSelectedEvent(Event selectedEvent) {
         this.selectedEvent = selectedEvent;
     }
 
@@ -286,7 +291,7 @@ public class SavedEventDetailsFragment extends Fragment {
         }
     }
 
-    public StringBuffer stringBufferGenerator() {
+    private StringBuffer stringBufferGenerator() {
 
         //Modify the Dateformat form den DB to get a more readable Form for Date and Time disjunct
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");

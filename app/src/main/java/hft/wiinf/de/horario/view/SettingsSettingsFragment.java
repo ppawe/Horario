@@ -47,11 +47,14 @@ public class SettingsSettingsFragment extends Fragment implements ActivityCompat
 
     private static final String TAG = "SettingFragmentActivity";
     private static final int PERMISSION_REQUEST_SEND_SMS = 0;
-    EditText editTextUsername, editText_PhoneNumber;
-    Person person;
-    Spinner spinner_notificationTime, spinner_startTab;
-    Switch switch_enablePush;
-    TextView textView_minutesBefore, textView_reminder;
+    private EditText editTextUsername;
+    private EditText editText_PhoneNumber;
+    private Person person;
+    private Spinner spinner_notificationTime;
+    private Spinner spinner_startTab;
+    private Switch switch_enablePush;
+    private TextView textView_minutesBefore;
+    private TextView textView_reminder;
     private int counter = 0;
     private AlertDialog mAlertDialog;
     private AlertDialog.Builder mAlertDialogBuilder;
@@ -65,14 +68,12 @@ public class SettingsSettingsFragment extends Fragment implements ActivityCompat
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_settings_settings, container, false);
-
-        return view;
+        return inflater.inflate(R.layout.fragment_settings_settings, container, false);
     }
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    public void onViewCreated(final View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull final View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         //if the user is in the db read the user from db, else create a new one
         person = PersonController.getPersonWhoIam();
@@ -298,8 +299,6 @@ public class SettingsSettingsFragment extends Fragment implements ActivityCompat
     //return the correct item position based of the saved pushminutes
     private int getItemPositionPushMinutes() {
         switch (person.getNotificationTime()) {
-            case 0:
-                return 0;
             case 5:
                 return 1;
             case 15:
@@ -340,7 +339,7 @@ public class SettingsSettingsFragment extends Fragment implements ActivityCompat
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
         if (requestCode == PERMISSION_REQUEST_SEND_SMS) {
             // for each permission check if the user granted/denied them you may want to group the
@@ -423,7 +422,7 @@ public class SettingsSettingsFragment extends Fragment implements ActivityCompat
 
     // method to read the phone number of the user
     @SuppressLint({"MissingPermission", "HardwareIds"})
-    public void readPhoneNumber() {
+    private void readPhoneNumber() {
         if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
             //if permission is granted read the phone number
             TelephonyManager telephonyManager = (TelephonyManager) getContext().getSystemService(Context.TELEPHONY_SERVICE);

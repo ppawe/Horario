@@ -1,5 +1,6 @@
 package hft.wiinf.de.horario.view;
 
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +34,7 @@ public class MyInvitationRecyclerViewAdapter extends RecyclerView.Adapter<MyInvi
         mListener = listener;
     }
 
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
@@ -68,14 +70,14 @@ public class MyInvitationRecyclerViewAdapter extends RecyclerView.Adapter<MyInvi
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public final View mView;
-        public final TextView mContentView;
-        public Event mItem;
+        final View mView;
+        final TextView mContentView;
+        Event mItem;
 
-        public ViewHolder(View view) {
+        ViewHolder(View view) {
             super(view);
             mView = view;
-            mContentView = (TextView) view.findViewById(android.R.id.text1);
+            mContentView = view.findViewById(android.R.id.text1);
         }
 
         @Override

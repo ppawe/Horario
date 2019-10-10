@@ -24,7 +24,7 @@ public class EventPersonController {
         return eventPerson;
     }
 
-    public static List<EventPerson> getEventPeopleForSerialEvent(@NonNull Event startEvent, @NonNull Person person) {
+    private static List<EventPerson> getEventPeopleForSerialEvent(@NonNull Event startEvent, @NonNull Person person) {
         List<Event> events = EventController.findRepeatingEvents(startEvent.getId());
         List<EventPerson> eventPeople = new ArrayList<>();
         for (Event event : events) {
@@ -33,7 +33,7 @@ public class EventPersonController {
         return eventPeople;
     }
 
-    public static EventPerson addOrGetEventPerson(@NonNull Event event, @NonNull Person person) {
+    private static EventPerson addOrGetEventPerson(@NonNull Event event, @NonNull Person person) {
         EventPerson eventPerson = getEventPerson(event, person);
         if (eventPerson == null) {
             if (event.getId() == null) {
@@ -166,7 +166,7 @@ public class EventPersonController {
         return events;
     }
 
-    public static List<Event> getAllPendingEventsForPerson(Person person) {
+    private static List<Event> getAllPendingEventsForPerson(Person person) {
         List<Event> events = new ArrayList<>();
         List<EventPerson> eventPeople = new Select().from(EventPerson.class).where("person = ?", person.getId()).and("status = ?", AcceptedState.WAITING).execute();
         for (EventPerson eventPerson : eventPeople) {
@@ -187,7 +187,7 @@ public class EventPersonController {
         return events;
     }
 
-    public static List<Event> getAllInvitedEventsForPerson(Person person) {
+    private static List<Event> getAllInvitedEventsForPerson(Person person) {
         List<Event> events = new ArrayList<>();
         List<EventPerson> eventPeople = new Select().from(EventPerson.class).where("person = ?", person.getId()).and("status = ?", AcceptedState.INVITED).execute();
         for (EventPerson eventPerson : eventPeople) {
@@ -218,7 +218,7 @@ public class EventPersonController {
         }
     }
 
-    public static void deleteExpiredInvitedEventsForPerson(Person person) {
+    private static void deleteExpiredInvitedEventsForPerson(Person person) {
         List<Event> events = getAllInvitedEventsForPerson(person);
         Date now = new Date();
         for (Event event : events) {

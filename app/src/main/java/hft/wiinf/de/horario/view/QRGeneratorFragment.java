@@ -39,7 +39,6 @@ import java.util.Objects;
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.EventController;
 import hft.wiinf.de.horario.controller.PersonController;
-import hft.wiinf.de.horario.controller.SendSmsController;
 import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.Person;
 
@@ -62,7 +61,7 @@ public class QRGeneratorFragment extends Fragment {
 
     // Get the EventIdResultBundle (Long) from the newEventActivity to Start later a DB Request
     @SuppressLint("LongLogTag")
-    public Long eventIdDescription() {
+    private Long eventIdDescription() {
         Bundle qrEventIdBundle = getArguments();
         assert qrEventIdBundle != null;
         return qrEventIdBundle.getLong("eventId");
@@ -108,7 +107,7 @@ public class QRGeneratorFragment extends Fragment {
     }
 
     @SuppressLint("SimpleDateFormat")
-    public StringBuffer stringBufferGenerator() {
+    private StringBuffer stringBufferGenerator() {
         //Modify the DateFormat form den DB to get a more readable Form for Date and Time disjunct
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
         SimpleDateFormat simpleTimeFormat = new SimpleDateFormat("HH:mm");
@@ -140,7 +139,7 @@ public class QRGeneratorFragment extends Fragment {
     }
 
     //Create the QR Code from StringBuffer Data and Show it as a Bitmap
-    public void qrBitMapGenerator() {
+    private void qrBitMapGenerator() {
         //Create a CorrectionLevelHashMap for the QRCode
         // Level of Correction: L = 7%, M = 15%, Q = 25%, H = 30% (max!)
         Map<EncodeHintType, Object> correctionLevel = new HashMap<>();

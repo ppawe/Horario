@@ -32,12 +32,12 @@ import hft.wiinf.de.horario.model.Person;
 public class ParticipantsListFragment extends Fragment {
 
     public static String TAG = "ParticipantsListFragment";
-    SwipeRefreshLayout swipeRefresh;
-    TextView textViewEventData;
-    static ListView participantsListView;
-    static Context context = null;
-    static Event selectedEvent;
-    SimpleDateFormat dayFormat = new SimpleDateFormat("dd.MM.yyyy");
+    private static Event selectedEvent;
+    private SwipeRefreshLayout swipeRefresh;
+    private TextView textViewEventData;
+    private ListView participantsListView;
+    private Context context = null;
+    private SimpleDateFormat dayFormat = new SimpleDateFormat("dd.MM.yyyy");
 
     public ParticipantsListFragment() {
         // Required empty public constructor
@@ -45,10 +45,9 @@ public class ParticipantsListFragment extends Fragment {
 
     // Get the EventIdResultBundle (Long) from the newEventActivity to Start later a DB Request
     @SuppressLint("LongLogTag")
-    public Long getEventId() {
+    private Long getEventId() {
         Bundle MYEventIdBundle = getArguments();
-        Long MYEventIdLongResult = MYEventIdBundle.getLong("EventId");
-        return MYEventIdLongResult;
+        return MYEventIdBundle.getLong("EventId");
     }
 
     @Override
@@ -80,9 +79,7 @@ public class ParticipantsListFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Participant participant = (Participant) parent.getItemAtPosition(position);
-                if (participant.getExcuse().equals("NOEXCUSE")) {
-                    //do nothing, person has accepted
-                } else {
+                if (!participant.getExcuse().equals("NOEXCUSE")) {
                     //get rejection reason data, then show pop up
                     String[] reasonData = participant.getExcuse().split("!");
                     String reason = participant.getName().substring(2) + " hat den Termin abgesagt.";
@@ -100,14 +97,13 @@ public class ParticipantsListFragment extends Fragment {
                     });
                     builder.create();
                     builder.show();
-
                 }
             }
         });
         return view;
     }
 
-    public void update() {
+    private void update() {
         participantsListView.setAdapter(iterateOverParticipants(selectedEvent));
     }
 
@@ -116,11 +112,11 @@ public class ParticipantsListFragment extends Fragment {
         Toast.makeText(getContext(), R.string.participantsUpdated, Toast.LENGTH_SHORT).show();
     }
 
-    public void setSelectedEvent(Event selectedEvent) {
-        this.selectedEvent = selectedEvent;
+    private void setSelectedEvent(Event selectedEvent) {
+        ParticipantsListFragment.selectedEvent = selectedEvent;
     }
 
-    public ArrayAdapter iterateOverParticipants(Event event) {
+    private ArrayAdapter iterateOverParticipants(Event event) {
         final ArrayList<Participant> participantsArray = new ArrayList<>();
         /*Look into the DB and get all the participants of an event, then place them in an array with a prefix depending on the acceptance*/
         participantsArray.clear();
@@ -135,7 +131,7 @@ public class ParticipantsListFragment extends Fragment {
             participantsArray.add(new Participant(nameToSave, EventPersonController.getEventPerson(event, personCancelled).getRejectionReason()));
         }
 
-        final ArrayAdapter<Participant> adapter = new ArrayAdapter<Participant>(context, R.layout.list_row, participantsArray) {
+        return new ArrayAdapter<Participant>(context, R.layout.list_row, participantsArray) {
             @NonNull
             @Override
             public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
@@ -157,7 +153,6 @@ public class ParticipantsListFragment extends Fragment {
                 return item;
             }
         };
-        return adapter;
     }
 }
 

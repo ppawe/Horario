@@ -29,9 +29,9 @@ import static org.junit.Assert.assertEquals;
  */
 @RunWith(RobolectricTestRunner.class)
 public class EventTest {
-    Event event;
-    Person person;
-    Person person2;
+    private Event event;
+    private Person person;
+    private Person person2;
 
     @Before
     public void createStandardEvent() {

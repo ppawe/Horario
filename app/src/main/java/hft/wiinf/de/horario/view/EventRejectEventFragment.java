@@ -9,6 +9,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -47,17 +48,22 @@ import static android.content.Context.INPUT_METHOD_SERVICE;
 public class EventRejectEventFragment extends Fragment {
 
     private static final String TAG = "EventRejectEvent";
-    EditText reason_for_rejection;
-    TextView reject_event_header, reject_event_description;
-    Spinner spinner_reason;
-    Button button_reject_event, button_dialog_delete, button_dialog_back;
-    AlertDialog mDialog;
-    Event selectedEvent;
-    Event event;
-    StringBuffer eventToStringBuffer;
+    private EditText reason_for_rejection;
+    private TextView reject_event_header;
+    private TextView reject_event_description;
+    private Spinner spinner_reason;
+    private Button button_reject_event;
+    private Button button_dialog_delete;
+    private Button button_dialog_back;
+    private AlertDialog mDialog;
+    private Event selectedEvent;
+    private Event event;
+    private StringBuffer eventToStringBuffer;
 
-    String phNumber, rejectMessage, shortTitle;
-    Long creatorEventId;
+    private String phNumber;
+    private String rejectMessage;
+    private String shortTitle;
+    private Long creatorEventId;
 
     public EventRejectEventFragment() {
 
@@ -67,13 +73,11 @@ public class EventRejectEventFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_event_reject_event, container, false);
-
-        return view;
+        return inflater.inflate(R.layout.fragment_event_reject_event, container, false);
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         //initialize GUI-Elements
@@ -135,7 +139,7 @@ public class EventRejectEventFragment extends Fragment {
      * If "no", method is going back to layout from EventRejectEventFragment.
      *
      */
-    public void askForPermissionToDelete() {
+    private void askForPermissionToDelete() {
         //Build dialog
         final AlertDialog.Builder dialogAskForFinalDecission = new AlertDialog.Builder(getContext());
         dialogAskForFinalDecission.setView(R.layout.dialog_afterrejectevent);
@@ -199,13 +203,12 @@ public class EventRejectEventFragment extends Fragment {
      * This Method checks which value is for EventId
      * @return the creatorEventId: Id which the event has in the database of organizer
      */
-    public Long getEventID() {
+    private Long getEventID() {
         Bundle MYEventIdBundle = getArguments();
-        Long MYEventIdLongResult = MYEventIdBundle.getLong("EventId");
-        return MYEventIdLongResult;
+        return MYEventIdBundle.getLong("EventId");
     }
 
-    public void setSelectedEvent(Event selectedEvent) {
+    private void setSelectedEvent(Event selectedEvent) {
         this.selectedEvent = selectedEvent;
     }
 
@@ -253,21 +256,24 @@ public class EventRejectEventFragment extends Fragment {
         }
 
         // Event shortTitel in Headline with StartDate
-        reject_event_header.setText(eventCreatorName + "\n" + shortTitle + ", " + startDate);
+        String concat = eventCreatorName + "\n" + shortTitle + ", " + startDate;
+        reject_event_header.setText(concat);
         // Check for a Repetition Event and Change the Description Output with and without
         // Repetition Element inside.
         if (repetition.equals("")) {
-            reject_event_description.setText("Am " + startDate + " findet von " + startTime + " bis "
+            concat = "Am " + startDate + " findet von " + startTime + " bis "
                     + endTime + " Uhr in Raum " + place + " " + shortTitle + " statt." + "\n" + "Termindetails sind: "
-                    + description);
+                    + description;
+            reject_event_description.setText(concat);
         } else {
-            reject_event_description.setText("Vom " + startDate + " bis " + endDate +
+            concat = "Vom " + startDate + " bis " + endDate +
                     " findet " + repetition + " um " + startTime + "Uhr bis " + endTime + "Uhr in Raum "
-                    + place + " " + shortTitle + " statt." + "\n" + "Termindetails sind: " + description);
+                    + place + " " + shortTitle + " statt." + "\n" + "Termindetails sind: " + description;
+            reject_event_description.setText(concat);
         }
     }
 
-    public StringBuffer stringBufferGenerator() {
+    private StringBuffer stringBufferGenerator() {
 
         //Modify the Dateformat form den DB to get a more readable Form for Date and Time disjunct
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");

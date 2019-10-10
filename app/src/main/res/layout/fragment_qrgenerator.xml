@@ -31,7 +31,8 @@
                 android:paddingTop="10dp"
                 android:textAlignment="gravity"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ScrollView
                 android:id="@+id/scrollView11"

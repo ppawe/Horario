@@ -2,6 +2,7 @@ package hft.wiinf.de.horario.view;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -17,8 +18,11 @@ import hft.wiinf.de.horario.model.Person;
 
 public class SettingsFragment extends Fragment {
     private static final String TAG = "SettingFragmentActivity";
-    Button button_settings, button_support, button_copyright, button_feedback;
-    Person person;
+    private Button button_settings;
+    private Button button_support;
+    private Button button_copyright;
+    private Button button_feedback;
+    private Person person;
 
     @Nullable
     @Override
@@ -33,7 +37,7 @@ public class SettingsFragment extends Fragment {
     //Method will be called directly after View is created
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    public void onViewCreated(final View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull final View view, Bundle savedInstanceState) {
         try {
             person = PersonController.getPersonWhoIam();
         } catch (NullPointerException e) {

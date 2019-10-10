@@ -34,12 +34,14 @@ import hft.wiinf.de.horario.utility.BundleUtility;
  */
 public class SendSmsController extends BroadcastReceiver {
 
-    public static final String SENT = "SMS_SENT";
-    public static String sms_phoneNo, sms_msg, sms_eventShortDesc;
-    public static boolean sms_acc;
-    public static long sms_creatorID;
-    public Context cont;
-    public static Event mEvent;
+    private static final String SENT = "SMS_SENT";
+    private static String sms_phoneNo;
+    private static String sms_msg;
+    private static String sms_eventShortDesc;
+    private static boolean sms_acc;
+    private static long sms_creatorID;
+    private static Event mEvent;
+    private Context cont;
 
     /**
      * Generates an invitation string from an event and sends it to the recipient then saves the recipient as a Person with a pending event
@@ -154,11 +156,10 @@ public class SendSmsController extends BroadcastReceiver {
         }
     }
 
-
     /**
      * If the SMS failed start a job to schedule them again.
      */
-    public void startJobSendSMS() {
+    private void startJobSendSMS() {
         //Save just to be sure not to forget it
         FailedSMS failedSMS = new FailedSMS(sms_msg, sms_phoneNo, sms_creatorID, sms_acc);
         saveFailedSMS(failedSMS);
@@ -185,7 +186,7 @@ public class SendSmsController extends BroadcastReceiver {
      * failedSMS will be saved in the DB
      * @param failedSMS with all it defined params
      */
-    public void saveFailedSMS(FailedSMS failedSMS) {
+    private void saveFailedSMS(FailedSMS failedSMS) {
         FailedSMSController.addFailedSMS(failedSMS);
     }
 
@@ -204,17 +205,8 @@ public class SendSmsController extends BroadcastReceiver {
                     Toast.makeText(context, context.getString(R.string.sms_sent), Toast.LENGTH_SHORT).show();
                     break;
                 case SmsManager.RESULT_ERROR_GENERIC_FAILURE: // generic failure
-                    startJobSendSMS();
-                    Toast.makeText(context, context.getString(R.string.sms_fail), Toast.LENGTH_SHORT).show();
-                    break;
                 case SmsManager.RESULT_ERROR_NO_SERVICE: // No service
-                    startJobSendSMS();
-                    Toast.makeText(context, context.getString(R.string.sms_fail), Toast.LENGTH_SHORT).show();
-                    break;
                 case SmsManager.RESULT_ERROR_NULL_PDU: // null pdu
-                    startJobSendSMS();
-                    Toast.makeText(context, context.getString(R.string.sms_fail), Toast.LENGTH_SHORT).show();
-                    break;
                 case SmsManager.RESULT_ERROR_RADIO_OFF: //Radio off
                     startJobSendSMS();
                     Toast.makeText(context, context.getString(R.string.sms_fail), Toast.LENGTH_SHORT).show();

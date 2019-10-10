@@ -109,7 +109,8 @@
         <!-- Receiver will send sms and to everything which needs to happen like schedule job for FailedSMS-->
         <receiver android:name=".controller.SendSmsController"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:permission="android.permission.SEND_SMS">
         </receiver>
 
         <!-- Service will send FailedSMS if the device has all needed functions like sim-card-->
