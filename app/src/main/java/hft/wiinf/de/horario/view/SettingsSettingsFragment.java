@@ -41,7 +41,9 @@ import hft.wiinf.de.horario.model.Person;
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
 /**
- * A simple {@link Fragment} subclass.
+ * A fragment displaying several options for the user to customize the app's behaviour or change settings related to
+ * their account. Namely the username, their phoneNumber, whether or not they want to receive reminders for events, at what time they want to
+ * receive them and which tab the app should start at
  */
 public class SettingsSettingsFragment extends Fragment implements ActivityCompat.OnRequestPermissionsResultCallback {
 
@@ -64,6 +66,14 @@ public class SettingsSettingsFragment extends Fragment implements ActivityCompat
     }
 
 
+    /**
+     * Inflates the fragment_settings_settings.xml layout into views
+     *
+     * @param inflater           a LayoutInflater used for inflating layouts into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     * @return the view created from inflating the layout
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -71,6 +81,13 @@ public class SettingsSettingsFragment extends Fragment implements ActivityCompat
         return inflater.inflate(R.layout.fragment_settings_settings, container, false);
     }
 
+    /**
+     * initializes the view variables and sets the editable fields' behaviours like saving the new setting
+     * and closing open dialogs
+     *
+     * @param view               the view created from the layout in onCreateView()
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     */
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable Bundle savedInstanceState) {
@@ -217,9 +234,7 @@ public class SettingsSettingsFragment extends Fragment implements ActivityCompat
             }
         });
         //Everything that needs to happen after phone number was written in the EditText-Field
-        editText_PhoneNumber.setOnEditorActionListener(new TextView.OnEditorActionListener()
-
-        {
+        editText_PhoneNumber.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 String inputText = v.getText().toString().replaceAll(" ", "");

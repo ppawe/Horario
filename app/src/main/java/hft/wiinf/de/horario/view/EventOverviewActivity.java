@@ -10,9 +10,19 @@ import android.view.ViewGroup;
 
 import hft.wiinf.de.horario.R;
 
+/**
+ * the fragment that contains the EventOverviewFragment
+ */
 public class EventOverviewActivity extends Fragment {
-
-
+    /**
+     * inflates activity_event_overview layout, then replaces the event_overview_frameLayout within it with a new CalendarFragment
+     * thus acting as the container for any fragments that may replace the EventOverviewFragment
+     *
+     * @param inflater           the provided inflater from the parent Activity
+     * @param container          the View containing the Fragment (usually @+id/container in activity_tab.xml)
+     * @param savedInstanceState the saved state of the fragment for recreating the fragment after a system event changed it
+     * @return the View with the inflated layout
+     */
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,

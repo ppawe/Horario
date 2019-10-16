@@ -7,9 +7,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * represents an InvitationString the User received via some medium but hasn't responded to yet
+ * represents an Invitation the user received via some medium
  */
-
 public class InvitationString {
     private String invitation;
 
@@ -17,11 +16,24 @@ public class InvitationString {
 
     private String receivedFromNumber;
 
+    /**
+     * instatiates a new InvitationString not received via SMS
+     *
+     * @param invitation   the received String containing the invitation information
+     * @param dateReceived the time the invitation was received
+     */
     public InvitationString(String invitation, Date dateReceived) {
         this.invitation = invitation;
         this.dateReceived = dateReceived;
     }
 
+    /**
+     * instatiates a new InvitationString received via SMS
+     *
+     * @param invitation         the received String containing the invitation information
+     * @param dateReceived       the time the invitation was received
+     * @param receivedFromNumber the phone number the SMS was received from
+     */
     public InvitationString(String invitation, Date dateReceived, String receivedFromNumber) {
         this.invitation = invitation;
         this.dateReceived = dateReceived;
@@ -52,11 +64,11 @@ public class InvitationString {
         this.invitation = invitation;
     }
 
-    public String getCreatorEventId(){
+    public String getCreatorEventId() {
         return invitation.split(" \\| ")[0];
     }
 
-    public String getStartDate(){
+    public String getStartDate() {
         return invitation.split(" \\| ")[1];
     }
 
@@ -84,7 +96,7 @@ public class InvitationString {
         return null;
     }
 
-    public String getStartTime(){
+    public String getStartTime() {
         return invitation.split(" \\| ")[3];
     }
 
@@ -134,23 +146,23 @@ public class InvitationString {
         }
     }
 
-    public String getTitle(){
+    public String getTitle() {
         return invitation.split(" \\| ")[6];
     }
 
-    public String getPlace(){
+    public String getPlace() {
         return invitation.split(" \\| ")[7];
     }
 
-    public String getDescription(){
+    public String getDescription() {
         return invitation.split(" \\| ")[8];
     }
 
-    public String getCreatorName(){
+    public String getCreatorName() {
         return invitation.split(" \\| ")[9];
     }
 
-    public String getCreatorPhoneNumber(){
+    public String getCreatorPhoneNumber() {
         return invitation.split(" \\| ")[10];
     }
 

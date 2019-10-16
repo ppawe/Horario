@@ -18,9 +18,12 @@ import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.EventController;
 import hft.wiinf.de.horario.model.Event;
 
+/**
+ * a fragment for displaying the details of an event the user has accepted
+ * has buttons for showing the event's QR code as well as rejecting the event
+ */
 public class AcceptedEventDetailsFragment extends Fragment {
 
-    Button acceptedEventDetailButtonDelete;
     Event event;
     private Button acceptedEventDetailsButtonShowQR;
     private Button acceptedEventDetailsButtonRefuseAppointment;
@@ -31,11 +34,17 @@ public class AcceptedEventDetailsFragment extends Fragment {
     private Event selectedEvent;
     private StringBuffer eventToStringBuffer;
 
+    /**
+     * required empty public constructor
+     */
     public AcceptedEventDetailsFragment() {
-        // Required empty public constructor
     }
 
-    // Get the EventIdResultBundle (Long) from the newEventActivity to Start later a DB Request
+    /**
+     * get the event's ID from the arguments passed to the fragment
+     *
+     * @return Long value of the event id
+     */
     @SuppressLint("LongLogTag")
     private Long getEventID() {
         Bundle MYEventIdBundle = getArguments();
@@ -43,6 +52,14 @@ public class AcceptedEventDetailsFragment extends Fragment {
         return MYEventIdBundle.getLong("EventId");
     }
 
+    /**
+     * sets the global view variables and sets the onclick methods for the reject event and show QR code buttons
+     *
+     * @param inflater           LayoutInflater used for inflating the layout into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before some system event changed it
+     * @return the inflated view with all the changes applied to it
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -115,14 +132,27 @@ public class AcceptedEventDetailsFragment extends Fragment {
         return view;
     }
 
+    /**
+     * gets the currently selected {@link Event}
+     * @return the currently selected Event
+     */
     public Event getSelectedEvent() {
         return selectedEvent;
     }
 
+    /**
+     * sets the currently selected {@link Event}
+     * @param selectedEvent the event to be selected
+     */
     private void setSelectedEvent(Event selectedEvent) {
         this.selectedEvent = selectedEvent;
     }
 
+    /**
+     * builds the string representing the description of the accepted {@link Event}
+     * and displays it in the fragment's view
+     * @param selectedEvent the currently selected accepted event
+     */
     private void buildDescriptionEvent(Event selectedEvent) {
         //Put StringBuffer in an Array and split the Values to new String Variables
         //Index: 0 = CreatorID; 1 = StartDate; 2=date of event (for serial events) 3 = EndDate; 4 = StartTime; 5 = EndTime;
@@ -179,6 +209,11 @@ public class AcceptedEventDetailsFragment extends Fragment {
         }
     }
 
+    /**
+     * generates a StringBuffer containing all the information of the currently selected accepted {@link Event} with the Format:
+     * CreatorID | StartDate | currentDate | EndDate | StartTime | EndTime | Repetition | ShortTitle | Place | Description | Name of EventCreator
+     * @return the StringBuffer containing the Event information
+     */
     private StringBuffer stringBufferGenerator() {
 
         //Modify the Dateformat form den DB to get a more readable Form for Date and Time disjunct

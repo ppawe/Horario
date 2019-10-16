@@ -16,8 +16,9 @@ public class DeviceBootReceiver extends BroadcastReceiver {
     /**
      * Check if the Device has finished Booting.
      * call {@link NotificationController} startAlarmForAllEvents to start all Alarms again, because the die after a Reboot
+     *
      * @param context of the active fragment/activity
-     * @param intent of the registered service
+     * @param intent  of the registered service
      */
     @Override
     public void onReceive(Context context, Intent intent) {

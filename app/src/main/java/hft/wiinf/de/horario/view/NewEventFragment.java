@@ -51,6 +51,12 @@ import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.Person;
 import hft.wiinf.de.horario.model.Repetition;
 
+/**
+ * a fragment used for creating new events
+ * has editText views for each field of {@link Event} for the user to enter that are validated at submission
+ * creating a new event requires the user's permission to read their phone number because it is used as
+ * an identifier and a means for people to reply with an acceptance or rejection to a potential invitation
+ */
 public class NewEventFragment extends Fragment {
 
     // calendar objects to save the startTime / end Time / endOfRepetition, default: values - today
@@ -77,6 +83,14 @@ public class NewEventFragment extends Fragment {
     private DatePickerDialog mDatePickerDialog;
     private TimePickerDialog mTimePickerDialog;
 
+    /**
+     * inflates the fragment_new_event.xml layout and returns its view
+     *
+     * @param inflater           a LayoutInflater used for inflating layouts into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     * @return the view created from inflating the layout
+     */
     @Nullable
     @Override
     //create the view
@@ -86,6 +100,13 @@ public class NewEventFragment extends Fragment {
     }
 
 
+    /**
+     * initializes all the view variables and sets onCLickListener for the editText views
+     * as well as some user navigation behaviour
+     *
+     * @param view               the view created from the layout in onCreateView()
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     */
     public void onViewCreated(@NonNull final View view, Bundle savedInstanceState) {
         // set the second and millisecond of the calendar objects to 0 as (dates and) times are only compared by hour and minute, seconds dont matter
         startTime.set(Calendar.SECOND, 0);
@@ -250,6 +271,10 @@ public class NewEventFragment extends Fragment {
     }
 
     //if the checkbox serial event is checked, repetition possibilities and the endOfrepetition is shown, else not
+
+    /**
+     * checks if the serial event checkbox is checked and hides or reveals the serial event options accordingly
+     */
     private void checkSerialEvent() {
         if (checkBox_serialEvent.isChecked()) {
             textView_endofRepetiton.setVisibility(View.VISIBLE);
@@ -264,6 +289,9 @@ public class NewEventFragment extends Fragment {
         }
     }
 
+    /**
+     * opens a dialog that allows the user to pick a valid date and sets it to the date field
+     */
     private void getDate() {
         //close keyboard if it's open
         if (getActivity() != null && getActivity().getCurrentFocus() != null) {
@@ -288,6 +316,9 @@ public class NewEventFragment extends Fragment {
         mDatePickerDialog.show();
     }
 
+    /**
+     * opens a dialog that allows the user to pick a valid time and sets it to the startTime field
+     */
     private void getStartTime() {
         //close keyboard if it's open
         if (getActivity() != null && getActivity().getCurrentFocus() != null) {
@@ -314,6 +345,9 @@ public class NewEventFragment extends Fragment {
         mTimePickerDialog.show();
     }
 
+    /**
+     * opens a dialog that allows the user to pick a valid time and sets it to the endTime field
+     */
     private void getEndTime() {
         //close keyboard if it's open
         Activity activity = getActivity();
@@ -344,6 +378,9 @@ public class NewEventFragment extends Fragment {
         mTimePickerDialog.show();
     }
 
+    /**
+     * opens a dialog that allows the user to pick a valid date and sets it to the endDate field
+     */
     private void getEndOfRepetition() {
         //close keyboard if it's open
         Activity activity = getActivity();
@@ -373,7 +410,11 @@ public class NewEventFragment extends Fragment {
         mDatePickerDialog.show();
     }
 
-    //if the save button is clicked check the entrys and save the event if everything is ok
+
+    /**
+     * checks if the entries are valid and the user has a valid phone number
+     * if not try to get the phone number, else save the event
+     */
     private void onButtonClickSave() {
         if (checkValidity()) {
             if (me.getPhoneNumber() == null || !me.getPhoneNumber().matches("\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$"))
@@ -385,6 +426,10 @@ public class NewEventFragment extends Fragment {
     }
 
     //read the needed parameters / textfield and save the event
+
+    /**
+     * builds a new {@link Event} from the user's entries and sets a new alarm notification for it
+     */
     private void saveEvent() {
         //save the new user name
         me.setName(edittext_userName.getText().toString());
@@ -401,7 +446,7 @@ public class NewEventFragment extends Fragment {
         if (event.getRepetition() != Repetition.NONE) {
             event.setEndDate(endOfRepetition.getTime());
             EventController.saveSerialevent(event);
-            List<Event> savedEvents = EventController.findRepeatingEvents(event.getId());
+            List<Event> savedEvents = EventController.findFollowUpEvents(event.getId());
             for (Event singleEvent : savedEvents) {
                 EventPersonController.addOrGetEventPerson(singleEvent, me, AcceptedState.ACCEPTED);
             }
@@ -417,6 +462,11 @@ public class NewEventFragment extends Fragment {
         NotificationController.setAlarmForNotification(getContext(), event);
     }
 
+    /**
+     * I do not know what this does quite yet
+     * saves the date to some file but what for?
+     * @param date the date that's being saved
+     */
     private void saveReadDate(String date) {
         FileOutputStream outputStream;
         try {
@@ -430,7 +480,13 @@ public class NewEventFragment extends Fragment {
         }
     }
 
-    //clear all entrys and open a dialog where the user can choose what to do next
+    //clear all entries and open a dialog where the user can choose what to do next
+
+    /**
+     * clears all entries and opens a dialog with buttons that allows the user to either create a new
+     * {@link Event} or show the newly created event's QR Code
+     * @param eventId the event id of the newly created event
+     */
     private void openSavedSuccessfulDialog(final long eventId) {
         clearEntrys();
         Context ctx = getContext();
@@ -475,7 +531,9 @@ public class NewEventFragment extends Fragment {
         });
     }
 
-    //clear all entrys of the text edits and uncheck the serial event
+    /**
+     * clears all editText views and unchecks the serial event checkbox
+     */
     private void clearEntrys() {
         edittext_shortTitle.setText("");
         editText_description.setText("");
@@ -490,6 +548,11 @@ public class NewEventFragment extends Fragment {
     }
 
     //checks if the entrys are valid and opens a toast if not return value: boolean if everything is ok
+
+    /**
+     * checks if all entries are valid
+     * @return true if fields are valid; false if not
+     */
     private boolean checkValidity() {
         if (editText_description.getText().toString().equals("") || edittext_shortTitle.getText().toString().equals("") || edittext_date.getText().toString().equals("") || edittext_startTime.getText().toString().equals("") || editText_endTime.getText().toString().equals("") || edittext_userName.getText().toString().equals("") || edittext_room.getText().toString().equals("")) {
             Toast.makeText(getContext(), R.string.empty_fields, Toast.LENGTH_SHORT).show();
@@ -569,14 +632,14 @@ public class NewEventFragment extends Fragment {
             Toast.makeText(getContext(), R.string.endOfRepetition_before_endTime, Toast.LENGTH_SHORT).show();
             return false;
         }
-        Calendar minEndDate = (Calendar)startTime.clone();
-        minEndDate.set(Calendar.HOUR,0);
+        Calendar minEndDate = (Calendar) startTime.clone();
+        minEndDate.set(Calendar.HOUR, 0);
         minEndDate.set(Calendar.MINUTE, 0);
-        minEndDate.set(Calendar.SECOND,0);
+        minEndDate.set(Calendar.SECOND, 0);
         minEndDate.set(Calendar.MILLISECOND, 0);
         switch (getRepetition()) {
             case DAILY:
-                minEndDate.add(Calendar.DAY_OF_MONTH,1);
+                minEndDate.add(Calendar.DAY_OF_MONTH, 1);
                 break;
             case WEEKLY:
                 minEndDate.add(Calendar.WEEK_OF_YEAR, 1);
@@ -590,7 +653,7 @@ public class NewEventFragment extends Fragment {
             default:
                 break;
         }
-        if(getRepetition() != Repetition.NONE && endOfRepetition.before(minEndDate)){
+        if (getRepetition() != Repetition.NONE && endOfRepetition.before(minEndDate)) {
             Toast.makeText(getContext(), "Das Ende der Wiederholung liegt vor Ende der Mindestlänge des Wiederholungsintervalls", Toast.LENGTH_SHORT).show();
             return false;
         }
@@ -598,6 +661,11 @@ public class NewEventFragment extends Fragment {
     }
 
     //get the right repetition
+
+    /**
+     * converts the numerical value of the spinner to the corresponding {@link Repetition}
+     * @return Repetition corresponding to the user's choice
+     */
     private Repetition getRepetition() {
         //if the check box isnt checked return none
         if (!checkBox_serialEvent.isChecked()) {
@@ -616,6 +684,10 @@ public class NewEventFragment extends Fragment {
         }
     }
 
+    /**
+     * checks if app has permission to read the user's phone number
+     * if it does not the permission is requested else it attempts to read it
+     */
     private void checkPhonePermission() {
         //Check if User has permission to start to scan, if not it's start a RequestLoop
         if (!isPhonePermissionGranted()) {
@@ -625,16 +697,33 @@ public class NewEventFragment extends Fragment {
         }
     }
 
+    /**
+     * checks if the app has permission to read the user's phone number
+     * @return true if it has the needed permission; false if not
+     */
     private boolean isPhonePermissionGranted() {
         return ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
     }
 
+    /**
+     * requests permission to read the user's phone number
+     * the result is processed by {@link #onRequestPermissionsResult(int, String[], int[])}
+     */
     private void requestPhonePermission() {
         //For Fragment: requestPermissions(permissionsList,REQUEST_CODE);
         //For Activity: ActivityCompat.requestPermissions(this,permissionsList,REQUEST_CODE);
         requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, PERMISSION_REQUEST_READ_PHONE_STATE);
     }
 
+    /**
+     * processes whether or not the user granted the app permission to read their phone number
+     * if they said no and didn't check "never ask again" it simply asks again 2 times
+     * then simply asks the user to enter their phone number manually
+     * if they granted the permission the phone number is read
+     * @param requestCode the code of the permission request
+     * @param permissions the permissions that the user was asked for
+     * @param grantResults the results for the requests
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
@@ -718,6 +807,8 @@ public class NewEventFragment extends Fragment {
 
     /**
      * @// TODO: 05.09.19 remove test regex (\\(555\\)521-5554|\\(555\\)521-5556)
+     * reads the phone number of the user from the Sim card
+     * if the phone number couldn't be read the user is asked to enter it manually
      */
     @SuppressLint({"MissingPermission", "HardwareIds"})
     private void readPhoneNumber() {
@@ -757,6 +848,8 @@ public class NewEventFragment extends Fragment {
 
     /**
      * @// TODO: 05.09.19 remove test regex (\\(555\\)521-5554|\\(555\\)521-5556)
+     *opens a dialog where the user is asked to enter their phone number
+     * the entered number is validated and upon success the event is saved
      */
     private void openDialogAskForPhoneNumber() {
         mAlertDialogBuilder = new android.app.AlertDialog.Builder(getActivity());
@@ -769,10 +862,7 @@ public class NewEventFragment extends Fragment {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 String inputText = v.getText().toString().replaceAll("\\s", "");
-                //on click: read out the textfield, save the personand close the keyboard
-                //regex: perhaps + then numbers
-
-
+                //on click: read out the textfield, save the person and close the keyboard
                 if (actionId == EditorInfo.IME_ACTION_DONE && inputText.matches("\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$") || inputText.matches("(\\(555\\)521-5554|\\(555\\)521-5556)")) {
                     me.setPhoneNumber(mPhoneNumber.getText().toString());
                     PersonController.savePerson(me);
@@ -807,6 +897,9 @@ public class NewEventFragment extends Fragment {
         });
     }
 
+    /**
+     * if the app is paused all dialogs are closed
+     */
     public void onPause() {
         if (mAlertDialog != null) {
             mAlertDialog.dismiss();

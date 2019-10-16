@@ -1,7 +1,7 @@
 package hft.wiinf.de.horario.model;
 
 /**
- * a SMS that is for horario
+ * an SMS to be parsed by Horario representing an acceptance or rejection of an Event by another user
  */
 public class ReceivedHorarioSMS {
 

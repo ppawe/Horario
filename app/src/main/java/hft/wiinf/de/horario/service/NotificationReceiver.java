@@ -25,8 +25,9 @@ public class NotificationReceiver extends BroadcastReceiver {
 
     /**
      * add the Notification. Check which api the device has because you need to set a NotificationChannel for api >=26.
+     *
      * @param context of the active fragment/activity
-     * @param intent of the registered service
+     * @param intent  of the registered service
      */
     private void addNotification(Context context, Intent intent) {
         String msg = "Erinnerung an \"" + intent.getStringExtra("Event") + "\" um " + intent.getIntExtra("Hour", 0) + ":" + intent.getStringExtra("Minute") + " Uhr";

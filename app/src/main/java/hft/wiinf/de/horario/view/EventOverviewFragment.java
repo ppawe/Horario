@@ -62,15 +62,24 @@ public class EventOverviewFragment extends Fragment {
     private ConstraintLayout layout_eventOverview_main;
     private ConstraintLayout layoutOverview;
 
-
+    /**
+     * updates the textview with the currently displayed month and updates the ArrayAdapter for
+     * the list of appointments to reflect the newly selected month
+     */
     public void update() {
-        if(overviewTvMonth != null && overviewLvList != null) {
+        if (overviewTvMonth != null && overviewLvList != null) {
             overviewTvMonth.setText(CalendarFragment.monthFormat.format(selectedMonth));
             overviewLvList.setAdapter(iterateOverMonth(selectedMonth));
         }
     }
 
-    //get all events for the selected month and save them in a adapter
+    /**
+     * gets all {@link Event}s for the selected month and converts them into {@link Appointment}s
+     * then creates an ArrayAdapter that converts the appointments into views for display in a listview
+     *
+     * @param date a date in the month for which the ArrayAdapter should be created
+     * @return an ArrayAdapter that creates views for every appointment in the given month
+     */
     private ArrayAdapter iterateOverMonth(final Date date) {
         ArrayList<Appointment> appointmentArrayDay = new ArrayList<>();
         final ArrayList<Appointment> appointmentArray = new ArrayList<>();
@@ -159,6 +168,15 @@ public class EventOverviewFragment extends Fragment {
         };
     }
 
+    /**
+     * Initializes all view variables and sets the initial look of the fragment
+     * gets the list of appointments for the current month and sets onclick listeners for all FABs and the appointment list items
+     *
+     * @param inflater           LayoutInflater for inflating the layout into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before some system event changed it
+     * @return the inflated view of the layout with all changes applied to it
+     */
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
@@ -359,7 +377,9 @@ public class EventOverviewFragment extends Fragment {
     }
 
 
-    //Show the menu Buttons
+    /**
+     * starts animations to open all FABs and displays the invitation alert if there are any invitations
+     */
     private void showFABMenu() {
 
         eventOverviewFcQrScan.startAnimation(ActionButtonOpen);
@@ -383,6 +403,10 @@ public class EventOverviewFragment extends Fragment {
     }
 
     //Hide the menu Buttons
+
+    /**
+     * starts animations to close all open FABs
+     */
     private void closeFABMenu() {
         if (fabIsOpened) {
             eventOverview_HiddenIsFloatingMenuOpen.setText(R.string.falsch);
@@ -403,8 +427,13 @@ public class EventOverviewFragment extends Fragment {
             }
         }
     }
+
+    /**
+     * this method is called every time the state of the fragment has changed and becomes active again
+     * updates the invitation number alert textview
+     */
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         if (PersonController.getPersonWhoIam() != null) {
             eventOverviewTvInvitationNumber.setText(String.valueOf(EventPersonController.getNumberOfInvitedEventsForPerson(PersonController.getPersonWhoIam())));
@@ -412,12 +441,23 @@ public class EventOverviewFragment extends Fragment {
     }
 }
 
+/**
+ * class to represent {@link Event}s that the user has saved, rejected or participates in
+ * contains information that is later displayed in a listview via an ArrayAdapter
+ */
 class Appointment {
     private String description;
     private int type;
     private long id;
     private Person creator;
 
+    /**
+     * this constructor should be used to represent an {@link Event}
+     * @param description the description of the event
+     * @param type 1 = accepted, 2 = waiting, 3 = own
+     * @param id the id of the event
+     * @param creator the {@link Person} that created the event
+     */
     Appointment(String description, int type, long id, Person creator) {
         this.description = description;
         this.type = type;
@@ -425,14 +465,18 @@ class Appointment {
         this.creator = creator;
     }
 
+    /**
+     * this constructor is used to display text in the list that isn't an Event
+     * (displaying the date at the top or a message if the user has no appointments)
+     * @param description the text you want to be displayed in the list
+     * @param type for this constructor only type 0 (Date) should be used
+     */
     Appointment(String description, int type) {
         this.description = description;
         this.type = type;
     }
 
-    /**
-     * 0 = date, 1 = accepted, 2 = waiting, 3 = own
-     */
+
     public String getDescription() {
         return description;
     }

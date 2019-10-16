@@ -29,6 +29,9 @@ import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.Person;
 
+/**
+ * A fragment displaying the list of {@link Person} objects that have either accepted or rejected a given {@link Event}
+ */
 public class ParticipantsListFragment extends Fragment {
 
     public static String TAG = "ParticipantsListFragment";
@@ -44,12 +47,28 @@ public class ParticipantsListFragment extends Fragment {
     }
 
     // Get the EventIdResultBundle (Long) from the newEventActivity to Start later a DB Request
+
+    /**
+     * Method to get the Id of the selected {@link Event} passed to this fragment from {@link MyOwnEventDetailsFragment} during the FragmentTransaction
+     *
+     * @return the Id of the selected event
+     */
     @SuppressLint("LongLogTag")
     private Long getEventId() {
         Bundle MYEventIdBundle = getArguments();
         return MYEventIdBundle.getLong("EventId");
     }
 
+    /**
+     * initializes the view variables and defines the lists refresh behaviour
+     * adds a OnClickListener for each list item that opens a dialog displaying the reason
+     * for rejection if it is a rejection
+     *
+     * @param inflater           a LayoutInflater used for inflating layouts into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     * @return the view created from inflating the layout
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -103,10 +122,16 @@ public class ParticipantsListFragment extends Fragment {
         return view;
     }
 
+    /**
+     * updates the list of participants
+     */
     private void update() {
         participantsListView.setAdapter(iterateOverParticipants(selectedEvent));
     }
 
+    /**
+     * updates the list of participants then shows a toast message notifying a user of this
+     */
     private void refreshConfirmationsAndCancellations() {
         update();
         Toast.makeText(getContext(), R.string.participantsUpdated, Toast.LENGTH_SHORT).show();
@@ -116,6 +141,13 @@ public class ParticipantsListFragment extends Fragment {
         ParticipantsListFragment.selectedEvent = selectedEvent;
     }
 
+    /**
+     * Finds all {@link Person} objects that have accepted or rejected the given {@link Event} and
+     * saves them as a {@link Participant} the  returns an ArrayAdapter that creates views for each participant
+     * to be displayed in a list
+     * @param event
+     * @return
+     */
     private ArrayAdapter iterateOverParticipants(Event event) {
         final ArrayList<Participant> participantsArray = new ArrayList<>();
         /*Look into the DB and get all the participants of an event, then place them in an array with a prefix depending on the acceptance*/
@@ -156,6 +188,10 @@ public class ParticipantsListFragment extends Fragment {
     }
 }
 
+/**
+ * class representing a {@link Person} that has either accepted or rejected an {@link Event}
+ * contains their name and phone number as well as information about any excuses if they rejected the event
+ */
 class Participant {
     private String name;
     private String excuse;
@@ -165,6 +201,10 @@ class Participant {
         this.excuse = excuse;
     }
 
+    /**
+     * use this constructor to represent participants that accepted the {@link Event}
+     * @param name the name of the {@link Person} with their phone number in parentheses appended
+     */
     Participant(String name) {
         this.name = name;
         this.excuse = "NOEXCUSE";

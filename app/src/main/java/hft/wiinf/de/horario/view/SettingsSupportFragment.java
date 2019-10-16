@@ -10,7 +10,7 @@ import android.webkit.WebView;
 import hft.wiinf.de.horario.R;
 
 /**
- * A simple {@link Fragment} subclass.
+ * A fragment displaying the contact information of the original developer team leader in a WebView
  */
 
 public class SettingsSupportFragment extends Fragment {
@@ -20,7 +20,14 @@ public class SettingsSupportFragment extends Fragment {
         // Required empty public constructor
     }
 
-
+    /**
+     * Inflates the fragment_settings_support.xml into views then loads the support document into its WebView
+     *
+     * @param inflater           a LayoutInflater used for inflating layouts into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     * @return the view created from inflating the layout
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

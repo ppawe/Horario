@@ -4,6 +4,11 @@ import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 
+/**
+ * class representing the many to many relationship between {@link Person} and {@link Event} in the database
+ * status represents whether the person has rejected or accepted the event or their response is pending or they have only been invited
+ * if the status is rejection the reason for the rejection is stored in rejectionReason
+ */
 @Table(name = "eventperson")
 public class EventPerson extends Model {
 
@@ -16,6 +21,7 @@ public class EventPerson extends Model {
     @Column
     private String rejectionReason = "";
 
+    //this is only for use by the ORM to instantiate new EventPerson objects from the database
     public EventPerson() {
     }
 

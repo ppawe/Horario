@@ -240,7 +240,7 @@
     <string name="invitation_sent">Die Einladung wurde versendet</string>
     <string name="enter_recipient_number">Gib die Telefonummer des Empfängers ein.</string>
     <string name="event_is_in_past">Dieses Event liegt in der Vergangenheit</string>
-    <string name="sending_sms_impossible">Kann keine SMS senden</string>
+    <string name="sending_sms_impossible">Fehlende Berechtigung oder Telefoniefunktion</string>
     <string name="einladungen">Einladungen</string>
     <string name="falsch">false</string>
     <string name="wahr">true</string>

@@ -35,6 +35,11 @@ import hft.wiinf.de.horario.controller.SendSmsController;
 import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.Person;
 
+/**
+ * fragment representing an {@link Event} that the user created
+ * displays details of the event and has options to invite a new user via SMS, display the event's QR Code
+ * or show a list of users that have accepted, rejected or been invited to the event
+ */
 public class MyOwnEventDetailsFragment extends Fragment {
 
     Event event;
@@ -54,7 +59,11 @@ public class MyOwnEventDetailsFragment extends Fragment {
         // Required empty public constructor
     }
 
-    // Get the EventIdResultBundle (Long) from the CalenderFragment to Start later a DB Request
+    /**
+     * Method to get the Id of the selected {@link Event} passed to this fragment from {@link CalendarFragment} during the FragmentTransaction
+     *
+     * @return the Id of the selected event
+     */
     @SuppressLint("LongLogTag")
     private Long getEventID() {
         Bundle MYEventIdBundle = getArguments();
@@ -62,6 +71,17 @@ public class MyOwnEventDetailsFragment extends Fragment {
         return MYEventIdBundle.getLong("EventId");
     }
 
+    /**
+     * initializes the view variables and sets the onClickListeners for the buttons
+     * one opens a dialog that lets you enter a phone number of a user to invite to the {@link Event}
+     * one opens a list of users that have rejected or accepted the event
+     * the last one opens a fragment that displays the QR Code associated with the event
+     *
+     * @param inflater           a LayoutInflater used for inflating layouts into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     * @return the view created from inflating the layout
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -110,8 +130,8 @@ public class MyOwnEventDetailsFragment extends Fragment {
                                         getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
                                     List<Person> participants = EventPersonController.getEventParticipants(selectedEvent);
                                     boolean alreadyInvited = false;
-                                    for(Person participant : participants){
-                                        if(participant.getPhoneNumber().equals(sendToNumber)){
+                                    for (Person participant : participants) {
+                                        if (participant.getPhoneNumber().equals(sendToNumber)) {
                                             alreadyInvited = true;
                                         }
                                     }
@@ -119,7 +139,7 @@ public class MyOwnEventDetailsFragment extends Fragment {
                                             EventPersonController.personIsInvitedToEvent(selectedEvent, PersonController.getPersonViaPhoneNumber(sendToNumber))) {
                                         Toast.makeText(getContext(), "Person nimmt bereits teil oder wurde bereits eingeladen.", Toast.LENGTH_SHORT).show();
                                         dialog.cancel();
-                                    }else {
+                                    } else {
                                         //send the invitation
                                         new SendSmsController().sendInvitationSMS(getContext(), selectedEvent, sendToNumber);
                                     }
@@ -131,8 +151,8 @@ public class MyOwnEventDetailsFragment extends Fragment {
                             return false;
                         }
                     });
-                }else{
-                    Toast.makeText(getContext(), R.string.event_is_in_past,Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), R.string.event_is_in_past, Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -161,7 +181,7 @@ public class MyOwnEventDetailsFragment extends Fragment {
             }
         });
 
-        // Open the QRGeneratorFragment to Show the QRCode form this Event.
+        // Open the QRGeneratorFragment to Show the QRCode of this Event.
         myOwnEventDetailsButtonShowQR.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -198,6 +218,12 @@ public class MyOwnEventDetailsFragment extends Fragment {
         this.selectedEvent = selectedEvent;
     }
 
+    /**
+     * This method formats the StringBuffer received from stringBufferGenerator() into a
+     * String detailing the information about the chosen {@link Event}
+     *
+     * @param selectedEvent: the event the user selected for rejection
+     */
     private void buildDescriptionEvent(Event selectedEvent) {
         //Put StringBuffer in an Array and split the Values to new String Variables
         //Index: 0 = CreatorID; 1 = StartDate; 2=date of event (for serial events) 3 = EndDate; 4 = StartTime; 5 = EndTime;
@@ -258,6 +284,10 @@ public class MyOwnEventDetailsFragment extends Fragment {
         }
     }
 
+    /**
+     * generates a StringBuffer with the information of the currently selected {@link Event} separated by " | " as its content
+     * @return the StringBuffer with the current event's information
+     */
     private StringBuffer stringBufferGenerator() {
 
         //Modify the Dateformat form den DB to get a more readable Form for Date and Time disjunct

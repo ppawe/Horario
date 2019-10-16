@@ -37,6 +37,11 @@ import hft.wiinf.de.horario.controller.EventPersonController;
 import hft.wiinf.de.horario.controller.PersonController;
 import hft.wiinf.de.horario.model.AcceptedState;
 
+/**
+ * Fragment containing an interactive calendar capable of displaying the current date as well as marking any {@link Event}s the user accepted
+ * also displays a list of all {@link Appointment}s below the calendar and has FABs for adding a new event,
+ * scanning a QR Code or showing a list of invitations for the user
+ */
 public class CalendarFragment extends Fragment {
     private static final String TAG = "CalendarFragmentActivity";
 
@@ -66,6 +71,26 @@ public class CalendarFragment extends Fragment {
     private AlphaAnimation fadeIn;
     private AlphaAnimation fadeOut;
 
+    /**
+     * marks all accepted events in the database on the calendar with a dark grey dot
+     */
+    public static void updateCompactCalendar() {
+        List<hft.wiinf.de.horario.model.Event> acceptedEvents = EventController.getAllEvents();
+        for (int i = 0; i < acceptedEvents.size(); i++) {
+            if (calendarCvCalendar.getEvents(acceptedEvents.get(i).getStartTime().getTime()).size() == 0 &&
+                    EventPersonController.getEventPerson(acceptedEvents.get(i), PersonController.getPersonWhoIam()).getStatus().equals(AcceptedState.ACCEPTED)) {
+                Event event = new Event(Color.DKGRAY, acceptedEvents.get(i).getStartTime().getTime());
+                calendarCvCalendar.addEvent(event, true);
+            }
+        }
+    }
+
+    /**
+     * updates the list of {@link hft.wiinf.de.horario.model.Event}s, the displayed date and month
+     * as well as the calendar to reflect the selected date
+     *
+     * @param date the new selected date
+     */
     private void update(Date date) {
         calendarTvDay.setText(dayFormat.format(date));
         calendarLvList.setAdapter(getAdapter(date));
@@ -73,7 +98,15 @@ public class CalendarFragment extends Fragment {
         updateCompactCalendar();
     }
 
-
+    /**
+     * initializes the fragment's view variables and sets the initial look of the fragment
+     * sets OnClickListeners for all FABs, the event list items and the calendar
+     *
+     * @param inflater           LayoutInflater used for inflating the layout into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before some system event changed it
+     * @return the inflated view with all the changes applied to it
+     */
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
@@ -100,7 +133,7 @@ public class CalendarFragment extends Fragment {
         ActionButtonRotateRight = AnimationUtils.loadAnimation(getContext(), R.anim.actionbuttonrotateright);
         ActionButtonRotateLeft = AnimationUtils.loadAnimation(getContext(), R.anim.actionbuttonrotateleft);
         fadeIn = new AlphaAnimation(0.0f, 1.0f);
-        fadeOut= new AlphaAnimation(1.0f, 0.0f);
+        fadeOut = new AlphaAnimation(1.0f, 0.0f);
 
         calendarFcQrScan.hide();
         calendarFcNewEvent.hide();
@@ -252,19 +285,13 @@ public class CalendarFragment extends Fragment {
         return view;
     }
 
-
-    //is marking the day in the calendar for the parameter date
-    public static void updateCompactCalendar() {
-        List<hft.wiinf.de.horario.model.Event> acceptedEvents = EventController.getAllEvents();
-        for (int i = 0; i < acceptedEvents.size(); i++) {
-            if (calendarCvCalendar.getEvents(acceptedEvents.get(i).getStartTime().getTime()).size() == 0 &&
-                    EventPersonController.getEventPerson(acceptedEvents.get(i), PersonController.getPersonWhoIam()).getStatus().equals(AcceptedState.ACCEPTED)) {
-                Event event = new Event(Color.DKGRAY, acceptedEvents.get(i).getStartTime().getTime());
-                calendarCvCalendar.addEvent(event, true);
-            }
-        }
-    }
-
+    /**
+     * gets all {@link hft.wiinf.de.horario.model.Event}s the user has saved, rejected or participates in for a given date
+     * turns those events into {@link Appointment}s and returns an ArrayAdapter that turns those appointments
+     * into views for a listview
+     * @param date the date for which the events should be displayed
+     * @return an ArrayAdapter that creates views for every event on the given date
+     */
     private ArrayAdapter getAdapter(Date date) {
         final ArrayList<Appointment> eventsAsAppointments = new ArrayList<>();
 
@@ -319,6 +346,9 @@ public class CalendarFragment extends Fragment {
         };
     }
 
+    /**
+     * starts animations to open all FABs and displays the invitation alert if there are any invitations
+     */
     private void showFABMenu() {
         calendarFcQrScan.startAnimation(ActionButtonOpen);
         calendarFcNewEvent.startAnimation(ActionButtonOpen);
@@ -340,6 +370,9 @@ public class CalendarFragment extends Fragment {
         }
     }
 
+    /**
+     * starts animations to close all open FABs
+     */
     private void closeFABMenu() {
         if (calendarIsFloatMenuOpen.getText().equals("true")) {
             calendarFcQrScan.startAnimation(ActionButtonClose);
@@ -358,8 +391,12 @@ public class CalendarFragment extends Fragment {
         }
     }
 
+    /**
+     * this method is called every time the state of the fragment has changed and becomes active again
+     * updates the invitation number alert textview
+     */
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         if (PersonController.getPersonWhoIam() != null) {
             calendarTvInvitationNumber.setText(String.valueOf(EventPersonController.getNumberOfInvitedEventsForPerson(PersonController.getPersonWhoIam())));

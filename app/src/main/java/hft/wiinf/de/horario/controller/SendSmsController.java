@@ -50,7 +50,7 @@ public class SendSmsController extends BroadcastReceiver {
      * @param event            the event for which an invitation is to be sent
      * @param sms_recipient_no the phone number of the recipient in E.164 format
      */
-    public void sendInvitationSMS(Context context, Event event, String sms_recipient_no){
+    public void sendInvitationSMS(Context context, Event event, String sms_recipient_no) {
         mEvent = event;
         cont = context;
         String stringSplitSymbol = " | ";
@@ -76,17 +76,17 @@ public class SendSmsController extends BroadcastReceiver {
 
         try {
             SmsManager smsManager = SmsManager.getDefault();
-            if(message.length() > 160) {
+            if (message.length() > 160) {
                 ArrayList<String> list = smsManager.divideMessage(message);
-                smsManager.sendMultipartTextMessage(sms_recipient_no,null,list,null,null);
-            }else {
+                smsManager.sendMultipartTextMessage(sms_recipient_no, null, list, null, null);
+            } else {
                 smsManager.sendTextMessage(sms_recipient_no, null, message, null, null);
             }
-            Person invitedPerson = PersonController.addPerson(sms_recipient_no, "unknown");
+            Person invitedPerson = PersonController.addOrGetPerson(sms_recipient_no, "unknown");
             invitedPerson.save();
-            EventPersonController.addOrGetEventPerson(event, invitedPerson, AcceptedState.WAITING);
-            Toast.makeText(context,"Einladung wurde verschickt",Toast.LENGTH_SHORT).show();
-        }catch (Exception e){
+            EventPersonController.addOrGetEventPerson(event, invitedPerson, AcceptedState.INVITED);
+            Toast.makeText(context, "Einladung wurde verschickt", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
             Log.d("louis", e.getMessage());
         }
 
@@ -97,15 +97,15 @@ public class SendSmsController extends BroadcastReceiver {
      * It will be check if the device is able to send SMS at all --> if not a ToastMessage will be displayed but the user
      * can use all functions except the sms part (creator will not get an answer but event will be saved)
      * Format of SMS:
-     *  - Accepted: ":Horario:sms_creatorEventID,1,username"
-     *  - Rejected: ":Horario:sms_creatorEventID,0,username,rejectMessage"
+     * - Accepted: ":Horario:sms_creatorEventID,1,username"
+     * - Rejected: ":Horario:sms_creatorEventID,0,username,rejectMessage"
      *
-     * @param context of the active fragment/activity
-     * @param sms_phoneNumber from the targetDevice
-     * @param sms_rejectMessage optional: could be " " --> why is the user unable to participate. Special Format: Category!personal Message Example: "Ill!Iam really sick"
-     * @param sms_accepted boolean if the event was accepted = true or rejected = false
+     * @param context            of the active fragment/activity
+     * @param sms_phoneNumber    from the targetDevice
+     * @param sms_rejectMessage  optional: could be " " --> why is the user unable to participate. Special Format: Category!personal Message Example: "Ill!Iam really sick"
+     * @param sms_accepted       boolean if the event was accepted = true or rejected = false
      * @param sms_creatorEventId is a reference to the EventID in the Database of the creator to find the right Event later
-     * @param eventShortDesc the short description of the event
+     * @param eventShortDesc     the short description of the event
      */
     public void sendSMS(final Context context, String sms_phoneNumber, String sms_rejectMessage, boolean sms_accepted, long sms_creatorEventId, String eventShortDesc) {
         //Check if device is able to send SMS at all
@@ -123,7 +123,7 @@ public class SendSmsController extends BroadcastReceiver {
             String msg;
             Person personMe = PersonController.getPersonWhoIam();
             if (sms_accepted) {
-                msg = ":Horario:" + sms_creatorEventId + ",1," + personMe.getName() +":Horario:";
+                msg = ":Horario:" + sms_creatorEventId + ",1," + personMe.getName() + ":Horario:";
             } else {
                 msg = ":Horario:" + sms_creatorEventId + ",0," + personMe.getName() + "," + sms_rejectMessage + ":Horario:";
             }
@@ -145,7 +145,7 @@ public class SendSmsController extends BroadcastReceiver {
                     public void run() {
                         try {
                             cont.unregisterReceiver(smsUtils);
-                        }catch(Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -184,6 +184,7 @@ public class SendSmsController extends BroadcastReceiver {
 
     /**
      * failedSMS will be saved in the DB
+     *
      * @param failedSMS with all it defined params
      */
     private void saveFailedSMS(FailedSMS failedSMS) {
@@ -194,8 +195,9 @@ public class SendSmsController extends BroadcastReceiver {
      * Do not call this directly!
      * service will send a message to the receiver weather the sending process was successful or not
      * If the action was not succesful the startJobSendSMS Method will be called
+     *
      * @param context of the active fragment/activity
-     * @param intent which is used in the registerReceiver
+     * @param intent  which is used in the registerReceiver
      */
     @Override
     public void onReceive(Context context, Intent intent) {

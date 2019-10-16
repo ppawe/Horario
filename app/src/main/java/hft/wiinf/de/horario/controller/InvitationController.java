@@ -9,6 +9,13 @@ import hft.wiinf.de.horario.model.InvitationString;
 import hft.wiinf.de.horario.model.Person;
 
 public class InvitationController {
+
+    /**
+     * checks if the {@link Event} specified in the given {@link InvitationString} already exists in the database
+     *
+     * @param invitationString the invitationString to be checked
+     * @return boolean representing whether the event is already saved
+     */
     public static boolean eventAlreadySaved(@NonNull InvitationString invitationString) {
         Person creator = new Select().from(Person.class).where("phoneNumber = ?", invitationString.getCreatorPhoneNumber()).executeSingle();
         if (creator != null) {

@@ -10,7 +10,9 @@ import android.webkit.WebView;
 import hft.wiinf.de.horario.R;
 
 /**
- * A simple {@link Fragment} subclass.
+ * A fragment containing a nice message from the original developers telling the user that they appreciate
+ * comments and feedback but are going to ignore them because it's none of their business, then telling
+ * them to just do it themselves and hinting at the existence of a github repository
  */
 public class SettingsFeedbackFragment extends Fragment {
     private WebView settings_feedback_webView;
@@ -20,6 +22,14 @@ public class SettingsFeedbackFragment extends Fragment {
     }
 
 
+    /**
+     * Inflates the fragment_settings_feedback.xml layout then loads the feedback document into its WebView
+     *
+     * @param inflater           a LayoutInflater used for inflating layouts into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     * @return the view created from inflating the layout
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

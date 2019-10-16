@@ -7,6 +7,8 @@ import com.activeandroid.annotation.Table;
 /**
  * many to many relation to Event in EventPerson table
  * enable push, notification time, start tab should only be read out for the app user
+ *
+ * @// TODO: 14.10.19  if you find the time just put those in a config file or something that's 3 columns full of wasted space
  */
 //
 @Table(name = "persons")
@@ -26,7 +28,7 @@ public class Person extends Model {
 
 
     /**
-     * Instantiates a new Person. Use this constructor for person that using this specific app (owner)
+     * Instantiates a new Person. Use this constructor for person that is this app's user
      *
      * @param isItMe      if the person is the app user
      * @param phoneNumber the phone number of the user
@@ -40,7 +42,7 @@ public class Person extends Model {
     }
 
     /**
-     * Instantiates a new Person. Use this constructor for persons that is not the current(real) user of this specific app
+     * Instantiates a new Person. Use this constructor for people that are not the current user of this app
      *
      * @param phoneNumber the phone number of the user
      * @param name        the name of the user

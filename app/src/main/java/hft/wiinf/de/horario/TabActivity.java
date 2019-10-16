@@ -62,6 +62,15 @@ import hft.wiinf.de.horario.view.SettingsActivity;
 
 import static com.activeandroid.Cache.getContext;
 
+/**
+ * The main activity of Horario. This activity contains the tabs with the 3 main fragments
+ * {@link EventOverviewActivity}, {@link CalendarActivity}, {@link SettingsActivity} that can be switched
+ * between via a TabLayout. Also acts as a handler for QR Code scan results from {@link hft.wiinf.de.horario.view.QRScanFragment}
+ * and {@link Event}s that the user has been invited to and interacted with in {@link InvitationFragment} or a notification,
+ * presenting the user with a dialog allowing the user to accept, reject or save the event.
+ * At the first start of the app requests several essential permissions and information from the user
+ * such as their user name, permission to send and read SMS or access the user's contacts
+ */
 public class TabActivity extends AppCompatActivity implements ScanResultReceiverController, InvitationFragment.OnListFragmentInteractionListener {
 
     private static final String TAG = "TabActivity";
@@ -93,11 +102,23 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     private int counterCONTACTS = 0;
 
 
+    /**
+     * if a new intent is received (such as one received from an invitation notification)
+     *
+     * @param intent the newly received intent
+     */
     @Override
     public void onNewIntent(Intent intent) {
         setIntent(intent);
     }
 
+    /**
+     * called when a list item has been interacted with in {@link InvitationFragment}
+     * opens the dialog that allows the user to decide what to do with the {@link Event}
+     * they have been invited to
+     *
+     * @param event the event that the user selected in the list of invitations
+     */
     @Override
     public void onListFragmentInteraction(Event event) {
 
@@ -111,6 +132,11 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
 
     }
 
+    /**
+     * initializes the database and the app's layout/views, selects the user's preferred start tab
+     * and asks the user for essential information/permissions if they are not yet granted
+     * @param savedInstanceState the saved state of the activity from before a system event changed it
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -156,10 +182,18 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         myEndDate.set(Calendar.MILLISECOND, 0);
     }
 
+    /**
+     * this shouldn't exist
+     * actually just calls {@link #checkSMSPermissions()}
+     */
     private void askForSMSPermissions() {
         checkSMSPermissions();
     }
 
+    /**
+     * checks if the app has permission to read SMS
+     * if not ask for them, else check if the app has permission to read contacts
+     */
     private void checkSMSPermissions() {
         if (!areSMSPermissionsGranted()) {
             requestSMSPermissions();
@@ -169,6 +203,10 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         }
     }
 
+    /**
+     * checks if the app has permission to read contacts
+     * if not requests the permission
+     */
     private void checkContactsPermission() {
         if (!areContactPermissionsGranted()) {
             requestContactPermissions();
@@ -178,6 +216,10 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     }
 
 
+    /**
+     * checks if the app has permission to receive SMS
+     * @return true if the app has the permission, false if not
+     */
     private boolean areSMSPermissionsGranted() {
         int sms = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECEIVE_SMS);
         List<String> listPermissionsNeeded = new ArrayList<>();
@@ -188,6 +230,10 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         return listPermissionsNeeded.isEmpty();
     }
 
+    /**
+     * checks if the app has permission to read contacts
+     * @return true if the app has the permission, false if not
+     */
     private boolean areContactPermissionsGranted() {
         int contacts = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_CONTACTS);
         List<String> listPermissionsNeeded = new ArrayList<>();
@@ -197,6 +243,9 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         return listPermissionsNeeded.isEmpty();
     }
 
+    /**
+     * if the necessary SMS permission isn't granted, request the permission from the user
+     */
     private void requestSMSPermissions() {
         int sms = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECEIVE_SMS);
         List<String> listPermissionsNeeded = new ArrayList<>();
@@ -211,6 +260,9 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         }
     }
 
+    /**
+     * if the necessary contact permission isn't granted, request the permission from the user
+     */
     private void requestContactPermissions() {
         int contacts = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_CONTACTS);
         List<String> listPermissionsNeeded = new ArrayList<>();
@@ -222,6 +274,11 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         }
     }
 
+    /**
+     * changes the currently active tab fragment to the last active one as defined by fragmentResource
+     * or restarts the app if none is defined
+     * @param fragmentResource defines the last active tab
+     */
     private void restartApp(String fragmentResource) {
         //check from which Fragment (EventOverview or Calendar) are the Scanner was called
         switch (fragmentResource) {
@@ -250,11 +307,12 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
 
 
     /**
-     * This method creates a Dialog after scanning is successfull. After that, the user has three choices to click on.
-     * To save and accept event, save without accept and reject event. A Listener checks with button has been
+     * This method creates a Dialog displaying the currently selected {@link Event} after scanning is successful.
+     * After that, the user has three choices to click on.
+     * To save and accept event, save without accepting or rejecting event. A Listener checks which button has been
      * clicked. After click, checkIfEventIsInPast() is called.
      *
-     * @param whichFragmentTag
+     * @param whichFragmentTag tag of the tab fragment that was last opened
      */
     @SuppressLint({"ResourceType", "SetTextI18n"})
     private void openActionDialogAfterScanning(final String whichFragmentTag) {
@@ -427,6 +485,14 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     }
 
     // "Catch" the ScanningResult and throw the Content to the processing Method
+
+    /**
+     * creates an {@link InvitationString} from the scanned or received invitation
+     * then if the invitation is for an event in the future creates an {@link Event} and opens a dialog
+     * that allows the user to decide what to do with it
+     * @param whichFragment which tab fragment was last opened
+     * @param codeContent the content of the message or code that needs to be processed
+     */
     @Override
     public void scanResultData(String whichFragment, String codeContent) {
         InvitationString invitedString = new InvitationString(codeContent, new Date());
@@ -447,6 +513,11 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     }
 
     // Give some error Message if the Code have not Data inside
+
+    /**
+     * displays an error message if an error occurs while scanning a QR Code
+     * @param noScanData a controller for an exception that occured
+     */
     @Override
     public void scanResultData(NoScanResultExceptionController noScanData) {
         Toast.makeText(this, noScanData.getMessage(), Toast.LENGTH_SHORT).show();
@@ -454,9 +525,12 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
 
 
     //Method will be called after UI-Elements are created
+
+    /**
+     * initializes the TabLayout's behaviour on swipes(hiding the keyboard if it is open etc.)
+     */
     public void onStart() {
         super.onStart();
-        Log.d("louis", "start");
         //Select calendar by default
         Objects.requireNonNull(tabLayout.getTabAt(startTab)).select();
         //Listener that will check when a Tab is selected, unselected and reselected
@@ -521,7 +595,6 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         });
         try {
             if (getIntent() != null && getIntent().getStringExtra("id") != null) {
-                Log.d("louis", getIntent().getStringExtra("id"));
                 invitedEvent = EventController.getEventById(Long.valueOf(getIntent().getStringExtra("id")));
                 if (EventPersonController.getEventPerson(invitedEvent, PersonController.getPersonWhoIam()).getStatus() == AcceptedState.INVITED) {
                     if (invitedEvent != null) {
@@ -535,6 +608,11 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     }
 
     // Add the Fragments to the PageViewer
+
+    /**
+     * add the tab fragments to the ViewPager
+     * @param viewPager the ViewPager that manages the activity's tabs
+     */
     private void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapterActivity adapter = mSectionsPageAdapter;
         adapter.addFragment(new EventOverviewActivity(), "");
@@ -593,6 +671,10 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         });
     }
 
+    /**
+     * defines the app's behaviour when the back button is pressed
+     * on back press the previous fragment is opened or if there are no previous fragments the app is exited
+     */
     @Override
     public void onBackPressed() {
         int count = getSupportFragmentManager().getBackStackEntryCount();
@@ -766,7 +848,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         if (invitedEvent.getRepetition() != Repetition.NONE) {
             if (buttonId == 1) {
                 EventPersonController.changeStatusForSerial(invitedEvent, PersonController.getPersonWhoIam(), AcceptedState.ACCEPTED, null);
-                List<Event> events = EventController.findRepeatingEvents(invitedEvent.getId());
+                List<Event> events = EventController.findFollowUpEvents(invitedEvent.getId());
                 for (Event event : events) {
                     NotificationController.setAlarmForNotification(getApplicationContext(), event);
                 }
@@ -811,7 +893,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         EventRejectEventFragment eventRejectEventFragment = new EventRejectEventFragment();
         Bundle bundleAcceptedEventId = new Bundle();
 
-            //finish and restart the activity
+        //finish and restart the activity
         bundleAcceptedEventId.putLong("EventId", invitedEvent.getId());
 
         bundleAcceptedEventId.putString("fragment", "AcceptedEventDetails");
@@ -905,8 +987,11 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         }
     }
 
+    /**
+     * Check if User has permission to read the user's phone number,
+     * if not request the permission, else read the number
+     */
     private void checkPhonePermission() {
-        //Check if User has permission to start to scan, if not it's start a RequestLoop
         if (!isPhonePermissionGranted()) {
             requestPhonePermission();
         } else {
@@ -914,16 +999,30 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         }
     }
 
+    /**
+     * checks if the app has permission to read the user's phone number
+     * @return true if it has the permission, false if not
+     */
     private boolean isPhonePermissionGranted() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
     }
 
+    /**
+     * requests permission to read the user's phone number
+     */
     private void requestPhonePermission() {
         //For Fragment: requestPermissions(permissionsList,REQUEST_CODE);
         //For Activity: ActivityCompat.requestPermissions(this,permissionsList,REQUEST_CODE);
         requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, PERMISSION_REQUEST_READ_PHONE_STATE);
     }
 
+    /**
+     * processes the user's response to a request for a permission
+     * upon denial asks again up to 2 times unless the user requests to never be asked again
+     * @param requestCode the code of the request
+     * @param permissions the list of permission that were requested
+     * @param grantResults the list of results of the requests
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -1204,6 +1303,11 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     }
 
     // method to read the phone number of the user
+
+    /**
+     * reads the phone number of the SIM card of the user and adds it to their profile
+     * if the number can't be read the user is asked to enter it manually
+     */
     private void readPhoneNumber() {
         //if permission is granted read the phone number
         TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
@@ -1232,3 +1336,4 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         }
     }
 }
+//leet

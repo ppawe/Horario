@@ -10,7 +10,7 @@ import android.webkit.WebView;
 import hft.wiinf.de.horario.R;
 
 /**
- * A simple {@link Fragment} subclass.
+ * A fragment displaying the legal disclosure of the app in a WebView
  */
 public class SettingsCopyrightFragment extends Fragment {
     private WebView settings_copyright_privacyPolicy;
@@ -19,7 +19,14 @@ public class SettingsCopyrightFragment extends Fragment {
         // Required empty public constructor
     }
 
-
+    /**
+     * Inflates the fragment_settings_copyright.xml layout then loads the legal disclosure document into its WebView
+     *
+     * @param inflater           a LayoutInflater used for inflating layouts into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     * @return the view created from inflating the layout
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

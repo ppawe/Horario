@@ -30,6 +30,9 @@ import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.NoScanResultExceptionController;
 import hft.wiinf.de.horario.controller.ScanResultReceiverController;
 
+/**
+ * fragment that starts the camera and is used for scanning QR Codes
+ */
 public class QRScanFragment extends Fragment implements ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final String TAG = "QRScanFragmentActivity";
@@ -41,18 +44,38 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
     private String whichFragment, codeContent;
     private Activity mActivity;
 
+    /**
+     * this is called after the Activity is created
+     *
+     * @param savedInstanceState If the fragment is being re-created from a previous saved state, this is the state.
+     */
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
     }
 
     //The Scanner start with the Call form CalendarActivity directly
+
+    /**
+     * inflates the fragment_calendar_qrscan.xml layout
+     *
+     * @param inflater          a LayoutInflater used for inflating layouts into views
+     * @param container         the parent view of the fragment
+     * @param saveInstanceState the saved state of the fragment from before a system event changed it
+     * @return the view created from inflating the layout
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle saveInstanceState) {
         return inflater.inflate(R.layout.fragment_calendar_qrscan, container, false);
     }
 
+    /**
+     * after the fragment's views have been created check if the user has given the app permission
+     * to send SMS
+     * @param view the view created in {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     */
     @SuppressLint("ResourceType")
     public void onViewCreated(@NonNull final View view, Bundle savedInstanceState) {
         //Call a Method to start at first a permission Check and if this granted it start the Scanner
@@ -60,6 +83,10 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
         checkForSMSPermission();
     }
 
+    /**
+     * checks if the user has given the app permission to send SMS
+     * if not asks for permission, else shows the camera used for scanning
+     */
     private void checkForSMSPermission() {
         if (!isSendSmsPermissionGranted()) {
             requestSendSmsPermission();
@@ -69,6 +96,10 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
         }
     }
 
+    /**
+     * starts a QR Code scan
+     * the result of the scan is handled in {@link #onActivityResult(int, int, Intent)}
+     */
     private void startScanner() {
         IntentIntegrator integrator = IntentIntegrator.forSupportFragment(this);
         integrator.setCaptureActivity(CaptureActivityPortrait.class); //Necessary to use the intern Sensor for Orientation
@@ -82,6 +113,10 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
         integrator.initiateScan();
     }
 
+    /**
+     * checks if the user has granted the app permission to use the camera,
+     * if not asks for permission, else starts the QR Code scan
+     */
     private void showCameraPreview() {
         //Check if User has permission to start to scan, if not it's start a RequestLoop
         if (!isCameraPermissionGranted()) {
@@ -91,26 +126,48 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
         }
     }
 
+    /**
+     * checks if the user has granted the app permission to use the camera
+     * @return true if permission is granted, false if it is not
+     */
     private boolean isCameraPermissionGranted() {
         return ContextCompat.checkSelfPermission(mActivity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
     }
 
+    /**
+     * requests permission to use the camera
+     */
     private void requestCameraPermission() {
         //For Fragment: requestPermissions(permissionsList,REQUEST_CODE);
         //For Activity: ActivityCompat.requestPermissions(this,permissionsList,REQUEST_CODE);
         requestPermissions(new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
     }
 
+    /**
+     * checks if the user has granted the app permission to use send SMS
+     * @return true if permission is granted, false if it is not
+     */
     private boolean isSendSmsPermissionGranted() {
         return ContextCompat.checkSelfPermission(mActivity, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED;
     }
 
+    /**
+     * requests permission to send SMS
+     */
     private void requestSendSmsPermission() {
         //For Fragment: requestPermissions(permissionsList,REQUEST_CODE);
         //For Activity: ActivityCompat.requestPermissions(this,permissionsList,REQUEST_CODE);
         requestPermissions(new String[]{Manifest.permission.SEND_SMS}, SEND_SMS_PERMISSION_CODE);
     }
 
+    /**
+     * handles the result of permission requests
+     * if the user denied the request and checked the "never ask again" box or has already been asked twice unsuccessfully
+     * the user is sent back to their last overview fragment. If the permission was granted proceeds to attempt to show the QR scanner
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -331,6 +388,10 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
 
 
     // Push the User where he/she comes from
+
+    /**
+     * returns to {@link CalendarFragment} or {@link EventOverviewFragment} depending on where the user accessed the QR scanner from
+     */
     private void goWhereUserComesFrom() {
         Bundle whichFragment = getArguments();
         if (getActivity() != null) {
@@ -347,6 +408,10 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
         }
     }
 
+    /**
+     * once the fragment is attached to its parent if that parent is an activity it is saved in a variable
+     * @param context the parent activity the fragment is getting attached to
+     */
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -358,6 +423,16 @@ public class QRScanFragment extends Fragment implements ActivityCompat.OnRequest
 
 
     //Check the Scanner Result
+
+    /**
+     * processes the result of the scan and calls {@link hft.wiinf.de.horario.TabActivity#scanResultData(String, String)}
+     * to process the content
+     * @param requestCode The integer request code originally supplied to
+     * startActivityForResult()
+     * @param resultCode The integer result code returned by the scanner activity through its setResult().
+     * @param intent An Intent, which can return result data to the caller
+     * (various data can be attached to Intent "extras").
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         IntentResult scanningResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);

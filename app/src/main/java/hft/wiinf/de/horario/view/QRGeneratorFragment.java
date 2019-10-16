@@ -42,6 +42,11 @@ import hft.wiinf.de.horario.controller.PersonController;
 import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.Person;
 
+/**
+ * A fragment used for displaying an {@link Event}'s information as a QR Code which other users
+ * can scan to be invited to the event. Has 2 buttons that allow the user to share the QR code or
+ * go back to their previous overview fragment ({@link EventOverviewFragment} or {@link CalendarFragment})
+ */
 public class QRGeneratorFragment extends Fragment {
 
     private static final String TAG = "QRGeneratorFragmentActivity";
@@ -60,6 +65,13 @@ public class QRGeneratorFragment extends Fragment {
     }
 
     // Get the EventIdResultBundle (Long) from the newEventActivity to Start later a DB Request
+
+    /**
+     * Method to get the Id of the selected {@link Event} passed to this fragment from {@link MyOwnEventDetailsFragment}
+     * or {@link AcceptedEventDetailsFragment} during the FragmentTransaction
+     *
+     * @return the Id of the selected event
+     */
     @SuppressLint("LongLogTag")
     private Long eventIdDescription() {
         Bundle qrEventIdBundle = getArguments();
@@ -67,7 +79,11 @@ public class QRGeneratorFragment extends Fragment {
         return qrEventIdBundle.getLong("eventId");
     }
 
-    // Push the User where he/she comes from
+
+    /**
+     * replaced the current fragment with {@link EventOverviewFragment} or {@link CalendarFragment}
+     * depending on from where the user accessed this fragment
+     */
     private void goWhereUserComesFrom() {
         Bundle whichFragment = getArguments();
         Objects.requireNonNull(getFragmentManager()).popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
@@ -82,6 +98,15 @@ public class QRGeneratorFragment extends Fragment {
         }
     }
 
+    /**
+     * inflates the fragment_qrgenerator.xml layout, initializes the view variables and gets the selected
+     * {@link Event} as well as the current user
+     *
+     * @param inflater           a LayoutInflater used for inflating layouts into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     * @return the view created from inflating the layout
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_qrgenerator, container, false);
@@ -106,6 +131,10 @@ public class QRGeneratorFragment extends Fragment {
         return view;
     }
 
+    /**
+     * generates a StringBuffer with the information of the currently selected {@link Event} separated by " | " as its content
+     * @return the StringBuffer with the current event's information
+     */
     @SuppressLint("SimpleDateFormat")
     private StringBuffer stringBufferGenerator() {
         //Modify the DateFormat form den DB to get a more readable Form for Date and Time disjunct
@@ -138,7 +167,11 @@ public class QRGeneratorFragment extends Fragment {
 
     }
 
-    //Create the QR Code from StringBuffer Data and Show it as a Bitmap
+
+    /**
+     * generates a QR Code from the result of {@link #stringBufferGenerator()} for the selected {@link Event}
+     * and sets it as the value of an image view in the fragment
+     */
     private void qrBitMapGenerator() {
         //Create a CorrectionLevelHashMap for the QRCode
         // Level of Correction: L = 7%, M = 15%, Q = 25%, H = 30% (max!)
@@ -158,6 +191,13 @@ public class QRGeneratorFragment extends Fragment {
         }
     }
 
+    /**
+     * generates the description of the {@link Event} and the QR Code
+     * sets the OnClickListeners for the buttons, one for sharing the QR Code and another for going back to the
+     * overview fragment the user accessed the current fragment from
+     * @param view the view created in {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     */
     @SuppressLint("LongLogTag")
     @Override
     public void onViewCreated(@NonNull final View view, Bundle savedInstanceState) {
@@ -202,7 +242,7 @@ public class QRGeneratorFragment extends Fragment {
             }
 
             // Check the EventCreatorName and is it itself Change the eventCreatorName to "Your Self"
-            if (eventCreatorName.equals(PersonController.getPersonWhoIam().getName())) {
+            if (mEvent.getCreator() == PersonController.getPersonWhoIam()) {
                 eventCreatorName = getString(R.string.yourself);
             }
 

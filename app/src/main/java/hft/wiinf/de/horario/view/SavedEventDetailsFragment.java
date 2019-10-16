@@ -33,6 +33,10 @@ import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
 import hft.wiinf.de.horario.model.Repetition;
 
+/**
+ * Fragment used to display details of {@link Event}s that the user has saved but neither accepted nor rejected.
+ * Has Buttons that allow the user to see the event's QR Code, accept it or reject it
+ */
 public class SavedEventDetailsFragment extends Fragment {
 
     Event event;
@@ -55,6 +59,12 @@ public class SavedEventDetailsFragment extends Fragment {
     }
 
     // Get the EventIdResultBundle (Long) from the newEventActivity to Start later a DB Request
+
+    /**
+     * Method to get the Id of the selected {@link Event} passed to this fragment during the FragmentTransaction
+     *
+     * @return the Id of the selected event
+     */
     @SuppressLint("LongLogTag")
     private Long getEventID() {
         Bundle MYEventIdBundle = getArguments();
@@ -62,6 +72,15 @@ public class SavedEventDetailsFragment extends Fragment {
         return MYEventIdBundle.getLong("EventId");
     }
 
+    /**
+     * Inflates the fragment_saved_event_details.xml into a view and adds OnClickListeners to the buttons
+     * allowing the user to view the {@link Event}s QR Code and reject or accept the event
+     *
+     * @param inflater           a LayoutInflater used for inflating layouts into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     * @return the view created from inflating the layout
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -150,6 +169,11 @@ public class SavedEventDetailsFragment extends Fragment {
         return view;
     }
 
+    /**
+     * asks the user to confirm their decision to accept the selected {@link Event} and sets the
+     * {@link hft.wiinf.de.horario.model.EventPerson}'s status to accepted if they do so, as well as
+     * sending a confirmation SMS to the creator
+     */
     private void askForPermissionToSave() {
         final AlertDialog.Builder dialogAskForFinalDecission = new AlertDialog.Builder(getContext());
         dialogAskForFinalDecission.setView(R.layout.dialog_afterrejectevent);
@@ -231,6 +255,12 @@ public class SavedEventDetailsFragment extends Fragment {
         this.selectedEvent = selectedEvent;
     }
 
+    /**
+     * This method formats the StringBuffer received from stringBufferGenerator() into a
+     * String detailing the information about the chosen {@link Event}
+     *
+     * @param selectedEvent: the saved event the user selected
+     */
     private void buildDescriptionEvent(Event selectedEvent) {
         //Put StringBuffer in an Array and split the Values to new String Variables
         //Index: 0 = CreatorID; 1 = StartDate; 2=date of event (for serial events) 3 = EndDate; 4 = StartTime; 5 = EndTime;
@@ -283,14 +313,18 @@ public class SavedEventDetailsFragment extends Fragment {
                     + description;
             savedEventeventDescription.setText(text);
         } else {
-            text =  getString(R.string.event_date) + startDate
+            text = getString(R.string.event_date) + startDate
                     + "\n" + getString(R.string.time) + startTime + getString(R.string.until)
-                    + endTime + getString(R.string.clock) + "\n" + getString(R.string.place) + place + "\n" +"Wiederholung: " + repetition + getString(R.string.until) + endDate + "\n\n" + getString(R.string.eventDetails)
+                    + endTime + getString(R.string.clock) + "\n" + getString(R.string.place) + place + "\n" + "Wiederholung: " + repetition + getString(R.string.until) + endDate + "\n\n" + getString(R.string.eventDetails)
                     + description;
             savedEventeventDescription.setText(text);
         }
     }
 
+    /**
+     * generates a StringBuffer with the information of the currently selected {@link Event} separated by " | " as its content
+     * @return the StringBuffer with the current event's information
+     */
     private StringBuffer stringBufferGenerator() {
 
         //Modify the Dateformat form den DB to get a more readable Form for Date and Time disjunct
@@ -323,6 +357,9 @@ public class SavedEventDetailsFragment extends Fragment {
 
     }
 
+    /**
+     * closes an existing dialog if the app is paused
+     */
     public void onPause() {
         if (mAlertDialog != null) {
             mAlertDialog.dismiss();

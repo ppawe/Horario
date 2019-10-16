@@ -99,7 +99,7 @@
                 android:textSize="14sp"
                 android:drawableEnd="@drawable/ic_share"
                 android:paddingEnd="5dp"
-                 android:paddingStart="30dp"
+                android:paddingStart="30dp"
                 app:layout_constraintBottom_toTopOf="@+id/qrGenerator_button_goToWhereComesFrom"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

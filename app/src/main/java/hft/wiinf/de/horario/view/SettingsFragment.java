@@ -16,6 +16,9 @@ import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.PersonController;
 import hft.wiinf.de.horario.model.Person;
 
+/**
+ * Fragment displaying links to several points of interest in the app such as settings, support, legal disclosures, and feedback
+ */
 public class SettingsFragment extends Fragment {
     private static final String TAG = "SettingFragmentActivity";
     private Button button_settings;
@@ -24,6 +27,14 @@ public class SettingsFragment extends Fragment {
     private Button button_feedback;
     private Person person;
 
+    /**
+     * Inflates the fragment_settings.xml layout into views
+     *
+     * @param inflater           a LayoutInflater used for inflating layouts into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     * @return the view created from inflating the layout
+     */
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
@@ -34,7 +45,14 @@ public class SettingsFragment extends Fragment {
         return view;
     }
 
-    //Method will be called directly after View is created
+
+    /**
+     * Initializes the view variables, then sets OnClickListeners for every button that replace the
+     * current fragment with the designated functions
+     *
+     * @param view               the view created from the layout in onCreateView()
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     */
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onViewCreated(@NonNull final View view, Bundle savedInstanceState) {

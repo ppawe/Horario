@@ -25,9 +25,6 @@
     <show-object-properties value="true" />
     <loaded-nodes>
       <connection connection-id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77">
-        <schema name="main" object-types="index, constraint, view, table, column, dataset trigger" />
-      </connection>
-      <connection connection-id="3439748a-604c-4273-9fd9-6279c6cdb1c0">
         <schema name="main" object-types="view, table" />
       </connection>
     </loaded-nodes>
@@ -41,10 +38,7 @@
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
-    <open-files>
-      <object connection-id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77" object-ref="schemas/main/tables/eventperson" />
-      <object connection-id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77" object-ref="schemas/main/tables/persons" />
-    </open-files>
+    <open-files />
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77" />

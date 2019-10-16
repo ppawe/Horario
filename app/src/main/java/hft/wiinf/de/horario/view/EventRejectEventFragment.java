@@ -1,5 +1,6 @@
 /**
  * This is a fragment to reject an event and try to send a message (sms) to organizer.
+ *
  * @author Team: Horario
  */
 
@@ -45,6 +46,11 @@ import hft.wiinf.de.horario.model.Event;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
+/**
+ * Fragment for rejecting {@link Event}s
+ * displays the event's details, a spinner with reasons for the rejection and a mandatory editText field
+ * for more detailed information about why the event was rejected
+ */
 public class EventRejectEventFragment extends Fragment {
 
     private static final String TAG = "EventRejectEvent";
@@ -69,6 +75,14 @@ public class EventRejectEventFragment extends Fragment {
 
     }
 
+    /**
+     * inflates fragment_event_reject_event.xml into a view
+     *
+     * @param inflater           a LayoutInflater used for inflating layouts into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     * @return the view created from inflating the layout
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -76,6 +90,12 @@ public class EventRejectEventFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_event_reject_event, container, false);
     }
 
+    /**
+     * initializes the view variables, sets onClickListeners for the buttons and initializes the form
+     *
+     * @param view               the view created in onCreateView
+     * @param savedInstanceState the saved state of the fragment from before a system event changed it
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -133,9 +153,10 @@ public class EventRejectEventFragment extends Fragment {
     }
 
     /**
-     * This method creates an AlertDialog to ask for final decision (yes or no).
+     * This method creates an AlertDialog to ask for final confirmation (yes or no).
      * This method return nothing. Next Steps depends on what is clicked (yes or no).
-     * If "yes", method is restarting the TabActivity and calendar shows up.
+     * If "yes", method is restarting the TabActivity and calendar shows up, the status of the event
+     * is changed to rejected and an SMS notifying the creator of the event of the rejection is sent.
      * If "no", method is going back to layout from EventRejectEventFragment.
      *
      */
@@ -199,23 +220,25 @@ public class EventRejectEventFragment extends Fragment {
     }
 
     /**
-     * Method to get Arguments from SavedEventDetailsFragment, AcceptedEventDetailsFragment or TabActivity
-     * This Method checks which value is for EventId
-     * @return the creatorEventId: Id which the event has in the database of organizer
+     * Method to get the Id of the selected {@link Event} passed to this fragment from {@link SavedEventDetailsFragment},
+     * {@link AcceptedEventDetailsFragment} or {@link TabActivity} during the FragmentTransaction
+     * @return the Id of the selected event
      */
     private Long getEventID() {
         Bundle MYEventIdBundle = getArguments();
         return MYEventIdBundle.getLong("EventId");
     }
 
+
     private void setSelectedEvent(Event selectedEvent) {
         this.selectedEvent = selectedEvent;
     }
 
     /**
-     * This method formats the output which is shown on Dialog
+     * This method formats the StringBuffer received from stringBufferGenerator() into a
+     * String detailing the information about the chosen {@link Event}
      *
-     * @param selectedEvent: Id which the event has in the database of organizer
+     * @param selectedEvent: the event the user selected for rejection
      */
     private void buildDescriptionEvent(Event selectedEvent) {
         //Put StringBuffer in an Array and split the Values to new String Variables
@@ -273,6 +296,10 @@ public class EventRejectEventFragment extends Fragment {
         }
     }
 
+    /**
+     * generates a StringBuffer with the information of the currently selected {@link Event} separated by " | " as its content
+     * @return the StringBuffer with the current event's information
+     */
     private StringBuffer stringBufferGenerator() {
 
         //Modify the Dateformat form den DB to get a more readable Form for Date and Time disjunct
@@ -327,6 +354,9 @@ public class EventRejectEventFragment extends Fragment {
         return true;
     }
 
+    /**
+     * closes the "are you sure?" dialog whenever the application is paused
+     */
     @Override
     public void onPause() {
         if (mDialog != null) {

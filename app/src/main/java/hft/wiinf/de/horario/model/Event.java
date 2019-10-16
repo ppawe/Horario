@@ -13,8 +13,8 @@ import java.util.Date;
 //start and endtime are both dates, not as in the gui one date and two times
 
 /**
- * represents an calendar event (both serial and one time).
- * a serial event is reperesented as a collection of events in the database, the persons who accepted or denied the event are only stoered at the first event of the collection; all other events refer to the start event via the startEvent attribute
+ * represents a calendar event (both serial and one time).
+ * a serial event is represented as a collection of events in the database, all events refer to the start event via the startEvent attribute
  */
 @Table(name = "events")
 public class Event extends Model {
@@ -205,8 +205,6 @@ public class Event extends Model {
     public void setRepetition(Repetition repetition) {
         this.repetition = repetition;
     }
-
-
 
 
     /**

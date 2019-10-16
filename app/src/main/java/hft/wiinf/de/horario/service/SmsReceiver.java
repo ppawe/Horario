@@ -62,29 +62,34 @@ public class SmsReceiver extends BroadcastReceiver {
      */
     @Override
     public void onReceive(Context context, Intent intent) {
-        // Get the data (SMS data) bound to intent
+        // Get the SMS data bound to intent
         Bundle bundle = intent.getExtras();
         SmsMessage[] receivedSMSArray;
         ArrayList<ReceivedHorarioSMS> unreadHorarioSMS = new ArrayList<ReceivedHorarioSMS>();
         boolean isSMSValidAndParseable = false;
         if (bundle != null) {
 
-            // Retrieve the SMS Messages received
+            // Retrieve the received SMS PDUs from the intent extras
             Object[] pdus = (Object[]) bundle.get("pdus");
             receivedSMSArray = new SmsMessage[pdus.length];
 
-            // For every SMS message received
+            // For every SMS PDU received create an SMS Message and save it into an array
             for (int i = 0; i < receivedSMSArray.length; i++) {
                 // Convert Object array
                 receivedSMSArray[i] = SmsMessage.createFromPdu((byte[]) pdus[i], "3gpp");
             }
+            //Because of the SMS 160 character limit, long SMS may be received in multiple parts
+            //if so the parts are saved in the previousMessages array so they can be concatenated and checked later
             List<String> previousMessages = new ArrayList<>();
             for (int i = 0; i < receivedSMSArray.length; i++) {
                 /*collect all the Horario SMS*/
                 String message = receivedSMSArray[i].getMessageBody();
+                //this part handles Event acceptances and rejections
+                // if a valid acceptance or rejection is found a ReceivedHorarioSMS is created from it and saved to a list on which parseHorarioSMSAndUpdate() is called later
                 if (message.length() > 9 && message.substring(0, 9).equals(":Horario:") && message.substring(message.length() - 9).equals(":Horario:")) {
+                    previousMessages.clear();
                     String number = (receivedSMSArray[i].getOriginatingAddress());
-                    String[] parsedSMS = message.substring(9, message.length() -9).split(",");
+                    String[] parsedSMS = message.substring(9, message.length() - 9).split(",");
                     if (!checkForResponseRegexOk(parsedSMS)) {
                         Log.d("Corrupt SMS Occurence!", message);
                         break;
@@ -99,13 +104,19 @@ public class SmsReceiver extends BroadcastReceiver {
                         }
                     }
                     isSMSValidAndParseable = true;
-                } else if (message.length() > 19 && message.substring(0, 19).equals(":HorarioInvitation:")) {
+                }
+                // this part handles invitations
+                // if a valid invitation is found an InvitationString is created from the message
+                // if the event in question is not in the past an Event to which the user is invited is created from the InvitationString
+                // finally calls the method that sends a notification about the notification to the user
+                else if (message.length() > 19 && message.substring(0, 19).equals(":HorarioInvitation:")) {
+                    previousMessages.clear();
                     previousMessages.add(message);
                     StringBuilder fullmessageBuilder = new StringBuilder();
-                    for(String previousMessage : previousMessages){
+                    for (String previousMessage : previousMessages) {
                         fullmessageBuilder.append(previousMessage);
                     }
-                    if(checkForInvitationRegexOk(fullmessageBuilder.toString())){
+                    if (checkForInvitationRegexOk(fullmessageBuilder.toString())) {
                         InvitationString newInvitationString = new InvitationString(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""),
                                 new Date(), receivedSMSArray[i].getOriginatingAddress());
                         String eventDateTimeString = newInvitationString.getStartTime() + " " + newInvitationString.getStartDate();
@@ -119,40 +130,37 @@ public class SmsReceiver extends BroadcastReceiver {
                                 if (!InvitationController.eventAlreadySaved(newInvitationString)) {
                                     Event invitedEvent = EventController.createInvitedEventFromInvitation(newInvitationString);
                                     NotificationController.sendInvitationNotification(context, newInvitationString, invitedEvent);
-                                }else{
-                                    Log.d("louis", "already invited");
                                 }
-                            }else{
-                                Log.d("louis", "received expired invitation");
-                                Log.d("louis", eventDateTimeString + " " + newInvitationString.getDateReceived());
                             }
-                        }catch(ParseException e){
+                        } catch (ParseException e) {
                             e.printStackTrace();
-                        }/**/
-
+                        }
                     }
-                }else if(previousMessages.size() != 0){
+                }
+                // this part handles multipart SMS Invitations
+                // because of the character limit for excuses, acceptances and rejections will never be sent as a multipart SMS
+                // otherwise identical to the branch above
+                else if (previousMessages.size() != 0) {
                     previousMessages.add(message);
                     StringBuilder fullmessageBuilder = new StringBuilder();
-                    for(String previousMessage : previousMessages){
+                    for (String previousMessage : previousMessages) {
                         fullmessageBuilder.append(previousMessage);
                     }
-                    if(checkForInvitationRegexOk(fullmessageBuilder.toString())){
-                        InvitationString newInvitationString = new InvitationString(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""), new Date());
+                    if (checkForInvitationRegexOk(fullmessageBuilder.toString())) {
+                        InvitationString newInvitationString = new InvitationString(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""), new Date(), receivedSMSArray[i].getOriginatingAddress());
                         String eventDateTimeString = newInvitationString.getStartTime() + " " + newInvitationString.getStartDate();
                         SimpleDateFormat format = new SimpleDateFormat("HH:mm dd.MM.yyyy");
                         try {
                             Date eventDateTime = format.parse(eventDateTimeString);
-                            if (eventDateTime.after(newInvitationString.getDateReceived())) {
+                            if (eventDateTime.after(newInvitationString.getDateReceived()) && newInvitationString.getRepetitionAsRepetition() == Repetition.NONE
+                                    || newInvitationString.getRepetitionAsRepetition() != Repetition.NONE &&
+                                    newInvitationString.getEndDateAsDate().after(newInvitationString.getDateReceived())) {
                                 if (!InvitationController.eventAlreadySaved(newInvitationString)) {
                                     Event invitedEvent = EventController.createInvitedEventFromInvitation(newInvitationString);
                                     NotificationController.sendInvitationNotification(context, newInvitationString, invitedEvent);
                                 }
-                            }else{
-                                Log.d("louis", "received expired invitation" + "test");
-
                             }
-                        }catch(ParseException e){
+                        } catch (ParseException e) {
                             e.printStackTrace();
                         }
 
@@ -167,102 +175,109 @@ public class SmsReceiver extends BroadcastReceiver {
         }
     }
 
-    private boolean checkForInvitationRegexOk(String message){
-        if(!message.matches(":HorarioInvitation:.*:HorarioInvitation:")){
+
+    /**
+     * Checks if a message matches a valid invitation
+     *
+     * @param message The message to be checked
+     * @return A boolean value representing whether or not the message passed all the checks
+     */
+    private boolean checkForInvitationRegexOk(String message) {
+        if (!message.matches(":HorarioInvitation:.*:HorarioInvitation:")) {
             return false;
         }
         message = message.replaceAll(":HorarioInvitation:", "");
         String[] splitMessage = message.split(" \\| ");
-        if(splitMessage.length == 11) {
+        if (splitMessage.length == 11) {
             //check if id is valid
-            if(!splitMessage[0].matches("^[^0\\D]\\d*$")){
-                Log.d("", splitMessage[0]);
+            if (!splitMessage[0].matches("^[^0\\D]\\d*$")) {
+                Log.d("invalidInvitation", splitMessage[0]);
                 return false;
             }
-            //check if startDate is valid
-            if(!splitMessage[1].matches("^(?:(?:31(\\.)(?:0?[13578]|1[02]))\\1|(?:(?:29|30)(\\.)(?:0?[1,3-9]|1[0-2])\\2))(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$|^(?:29(\\.)0?2\\3(?:(?:(?:1[6-9]|[2-9]\\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\\d|2[0-8])(\\.)(?:(?:0?[1-9])|(?:1[0-2]))\\4(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$")){
-                Log.d("louis", splitMessage[1]);
-                return false;
-            }
-            // check if endDate is valid. Pattern only matches valid dates in DD.MM.YYYY format and
+            // check if startDate is valid. Pattern only matches valid dates in DD.MM.YYYY format and
             // includes a check for leap years so it correctly matches 29.02.YYYY
-            if(!splitMessage[2].matches("^(?:(?:31(\\.)(?:0?[13578]|1[02]))\\1|(?:(?:29|30)(\\.)(?:0?[1,3-9]|1[0-2])\\2))(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$|^(?:29(\\.)0?2\\3(?:(?:(?:1[6-9]|[2-9]\\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\\d|2[0-8])(\\.)(?:(?:0?[1-9])|(?:1[0-2]))\\4(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$")){
-                Log.d("louis", splitMessage[2]);
+            if (!splitMessage[1].matches("^(?:(?:31(\\.)(?:0?[13578]|1[02]))\\1|(?:(?:29|30)(\\.)(?:0?[1,3-9]|1[0-2])\\2))(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$|^(?:29(\\.)0?2\\3(?:(?:(?:1[6-9]|[2-9]\\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\\d|2[0-8])(\\.)(?:(?:0?[1-9])|(?:1[0-2]))\\4(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$")) {
+                Log.d("invalidInvitation", splitMessage[1]);
                 return false;
             }
-            if(!splitMessage[3].matches("^([01]\\d|2[0-3]):([0-5]\\d)$")){
-                Log.d("louis", splitMessage[3]);
+            // check if endDate is valid
+            if (!splitMessage[2].matches("^(?:(?:31(\\.)(?:0?[13578]|1[02]))\\1|(?:(?:29|30)(\\.)(?:0?[1,3-9]|1[0-2])\\2))(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$|^(?:29(\\.)0?2\\3(?:(?:(?:1[6-9]|[2-9]\\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\\d|2[0-8])(\\.)(?:(?:0?[1-9])|(?:1[0-2]))\\4(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$")) {
+                Log.d("invalidInvitation", splitMessage[2]);
                 return false;
             }
-            if(!splitMessage[4].matches("^([01]\\d|2[0-3]):([0-5]\\d)$")){
-                Log.d("louis", splitMessage[4]);
+            if (!splitMessage[3].matches("^([01]\\d|2[0-3]):([0-5]\\d)$")) {
+                Log.d("invalidInvitation", splitMessage[3]);
                 return false;
             }
-            if(!splitMessage[5].matches("^[^\\s|][^|]*$")){
-                Log.d("louis", splitMessage[5]);
+            if (!splitMessage[4].matches("^([01]\\d|2[0-3]):([0-5]\\d)$")) {
+                Log.d("invalidInvitation", splitMessage[4]);
                 return false;
             }
-            if(!splitMessage[6].matches("^[^\\s|][^|]*$")){
-                Log.d("louis", splitMessage[6]);
+            if (!splitMessage[5].matches("^[^\\s|][^|]*$")) {
+                Log.d("invalidInvitation", splitMessage[5]);
                 return false;
             }
-            if(!splitMessage[7].matches("^[^\\s|][^|]*$")){
-                Log.d("louis", splitMessage[7]);
+            if (!splitMessage[6].matches("^[^\\s|][^|]*$")) {
+                Log.d("invalidInvitation", splitMessage[6]);
                 return false;
             }
-            if(!splitMessage[8].matches("^[^\\s|][^|]*$")){
-                Log.d("louis", splitMessage[8]);
+            if (!splitMessage[7].matches("^[^\\s|][^|]*$")) {
+                Log.d("invalidInvitation", splitMessage[7]);
                 return false;
             }
-            if(!splitMessage[9].matches("^[^\\s|][^|]*$")){
-                Log.d("louis", splitMessage[9]);
+            if (!splitMessage[8].matches("^[^\\s|][^|]*$")) {
+                Log.d("invalidInvitation", splitMessage[8]);
                 return false;
             }
-            if(!splitMessage[10].matches("^\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$")){
-                Log.d("louis", splitMessage[10]);
+            if (!splitMessage[9].matches("^[^\\s|][^|]*$")) {
+                Log.d("invalidInvitation", splitMessage[9]);
+                return false;
+            }
+            if (!splitMessage[10].matches("^\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$")) {
+                Log.d("invalidInvitation", splitMessage[10]);
                 return false;
             }
             return true;
         }
         return false;
     }
+
     /**
-     * Takes the parameter and checks for eventual SQL Injections and other syntax problems relevant for the functionality of the app.
+     * Takes the received message checks for potential SQL Injections and validity of the content
      *
-     * @param smsTextSplitted, an {@link java.util.Arrays} of {@link String}
+     * @param smsTextSplit, an {@link java.util.Arrays} of {@link String}
      * @return {@code true} if the SMS in question is valid and ready for the next method.
      */
-    private boolean checkForResponseRegexOk(String[] smsTextSplitted) {
+    private boolean checkForResponseRegexOk(String[] smsTextSplit) {
         // RegEx: NO SQL Injections allowed PLUS check if SMS is valid
-        // smsTextSplitted[0]= CreatorEventId, should be only number greater than 0
-        // smsTextSplitted[1]= boolean for acceptance, should be only 0 or 1
-        // smsTextSplitted[2]= String for name, only Chars and points
-        // smsTextSplitted[3]= Excuse asString, needs to be splitted again by "!" and checked on two strings
-        if (smsTextSplitted.length == 3 || smsTextSplitted.length == 4) {
-            boolean isAcceptance = smsTextSplitted.length == 3;
+        // smsTextSplit[0]= CreatorEventId, should be only number greater than 0
+        // smsTextSplit[1]= boolean for acceptance, should be only 0 or 1
+        // smsTextSplit[2]= String for name, only Chars and points
+        // smsTextSplit[3]= Excuse as String, needs to be split again by "!" and checked on two strings
+        if (smsTextSplit.length == 3 || smsTextSplit.length == 4) {
+            boolean isAcceptance = smsTextSplit.length == 3;
 
             //Make Patterns
             Pattern pattern_onlyGreatherThan0 = Pattern.compile("^[^0\\D]\\d*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
             Pattern pattern_only0Or1 = Pattern.compile("([01])", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
             Pattern pattern_onlyAlphanumsAndPointsAndWhitespaces = Pattern.compile("(\\w|\\s|\\.)*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
             //Make the matchers
-            Matcher m_pattern_onlyGreatherThan0 = pattern_onlyGreatherThan0.matcher(smsTextSplitted[0]);
-            Matcher m_pattern_only0Or1 = pattern_only0Or1.matcher(smsTextSplitted[1]);
-            Matcher m_pattern_onlyAlphanumsAndPointsAndWhitespaces = pattern_onlyAlphanumsAndPointsAndWhitespaces.matcher(smsTextSplitted[2]);
+            Matcher m_pattern_onlyGreatherThan0 = pattern_onlyGreatherThan0.matcher(smsTextSplit[0]);
+            Matcher m_pattern_only0Or1 = pattern_only0Or1.matcher(smsTextSplit[1]);
+            Matcher m_pattern_onlyAlphanumsAndPointsAndWhitespaces = pattern_onlyAlphanumsAndPointsAndWhitespaces.matcher(smsTextSplit[2]);
             Matcher m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionReason = null;
             Matcher m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionNote = null;
-            try {
-                //Do only if it is a rejection of an event
-                String[] excuseSplitted = smsTextSplitted[3].split("!");
-                if (excuseSplitted.length == 2) {
-                    m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionReason = pattern_onlyAlphanumsAndPointsAndWhitespaces.matcher(excuseSplitted[0]);
-                    m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionNote = pattern_onlyAlphanumsAndPointsAndWhitespaces.matcher(excuseSplitted[1]);
+
+            //Do only if it is a rejection of an event
+            if (!isAcceptance) {
+                String[] excuseSplit = smsTextSplit[3].split("!");
+                if (excuseSplit.length == 2) {
+                    m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionReason = pattern_onlyAlphanumsAndPointsAndWhitespaces.matcher(excuseSplit[0]);
+                    m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionNote = pattern_onlyAlphanumsAndPointsAndWhitespaces.matcher(excuseSplit[1]);
 
                 } else {
                     return false;
                 }
-            } catch (ArrayIndexOutOfBoundsException e) {
-                //SMS is Acceptance, no need to split
             }
 
             if (!m_pattern_onlyGreatherThan0.matches()) {
@@ -289,20 +304,22 @@ public class SmsReceiver extends BroadcastReceiver {
             }
             return true;
         } else {
-            //SMS is not splitted correctly -> wrong syntax therefore corrupt SMS
+            //SMS is not split correctly -> wrong syntax therefore corrupt SMS
             return false;
         }
     }
 
     /**
-     * Iterates through the {@link List} and verifies possible entries in the database before saving the person and the accepted/rejected events
-     * In case of a double acceptance or double rejection (QR-Code is scanned twice) then the person is not added.
-     * For more informations, look into the code comments.
+     * Iterates through the {@link List} of ReceivedHorarioSMS and creates or gets a {@link Person} that sent the SMS
+     * For each {@link Event} an {@link hft.wiinf.de.horario.model.EventPerson} is created and its status is set according to the value in the SMS
+     * For more information, look into the code comments.
+     *
      * @param unreadSMS, a {@link List} of {@link ReceivedHorarioSMS} to parse
      * @param context,   the {@link Context}
      */
     private void parseHorarioSMSAndUpdate(List<ReceivedHorarioSMS> unreadSMS, Context context) {
         for (ReceivedHorarioSMS singleUnreadSMS : unreadSMS) {
+            //if the phone number already has a Person associated with it get that Person else create one
             Person person = PersonController.getPersonViaPhoneNumber(singleUnreadSMS.getPhonenumber());
             if (person == null) {
                 person = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
@@ -310,183 +327,52 @@ public class SmsReceiver extends BroadcastReceiver {
             String savedContactExisting;
             savedContactExisting = lookForSavedContact(singleUnreadSMS.getPhonenumber(), context);
 
-            /*Replace name if saved in contacts*/
+            /*Replace name of the Person if they are saved in the user's contacts*/
             if (savedContactExisting != null) {
                 person.setName(savedContactExisting);
             } else {
                 person.setName(singleUnreadSMS.getName());
             }
             person.save();
+            //check if an Event with the given ID exists in the database
             Long eventIdInSMS = Long.valueOf(singleUnreadSMS.getCreatorEventId());
-            if (!EventController.checkIfEventIsInDatabaseThroughId(eventIdInSMS)) {
+            if (!EventController.checkIfEventIsInDatabaseViaId(eventIdInSMS)) {
                 addNotification(context, 1, person.getName(), singleUnreadSMS.isAcceptance());
                 break;
             }
             //Check if is SerialEvent or not
             if (isSerialEvent(eventIdInSMS)) {
-                boolean hasAcceptedEarlier = false;
-                boolean hasRejectedEarlier = false;
-                List<Event> myEvents = EventController.getMyEventsByCreatorEventId(eventIdInSMS);
-                //Is it an acceptance? Then look
+                List<Event> myEvents = EventController.getMyEventsFromReceivedCreatorEventId(eventIdInSMS);
                 if (singleUnreadSMS.isAcceptance()) {
-                    //acceptance: look for possible preceding rejections. If yes, then delete person and create new. Else just save the person
-                    //do this for each event of the event series
+                    //acceptance
                     for (Event event : myEvents) {
-                       /*
-                       Bad code ahead
-
-                       Person personA = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
-                        String savedContactExistingSerial;
-                        savedContactExistingSerial = lookForSavedContact(singleUnreadSMS.getPhonenumber(), context);
-
-                        *//*Replace name if saved in contacts*//*
-                        if (savedContactExistingSerial != null) {
-                            personA.setName(savedContactExistingSerial);
-                        } else {
-                            personA.setName(personA.getName() + " (" + singleUnreadSMS.getPhonenumber() + ")");
-                        }
-                        List<Person> allRejections = EventPersonController.getEventCancellations(event);
-                        List<Person> allAcceptances = EventPersonController.getEventParticipants(event);
-                        for (Person personRejected : allRejections) {
-                            personRejected.setPhoneNumber(shortifyPhoneNumber(personRejected.getPhoneNumber()));
-                            personA.setPhoneNumber(shortifyPhoneNumber(personA.getPhoneNumber()));
-                            if (personRejected.getPhoneNumber().equals(personA.getPhoneNumber())) {
-                                PersonController.deletePerson(personRejected);
-                                personA.setAcceptedEvent(event);
-                                PersonController.savePerson(personA);
-                                hasRejectedEarlier = true;
-                            }
-                        }
-                        for (Person personAccepted : allAcceptances) {
-                            personAccepted.setPhoneNumber(shortifyPhoneNumber(personAccepted.getPhoneNumber()));
-                            personA.setPhoneNumber(shortifyPhoneNumber(personA.getPhoneNumber()));
-                            if (personAccepted.getPhoneNumber().equals(personA.getPhoneNumber())) {
-                                hasAcceptedEarlier = true;
-                            }
-                        }
-                        if (!hasRejectedEarlier && !hasAcceptedEarlier) {
-                            personA.setPhoneNumber(shortifyPhoneNumber(personA.getPhoneNumber()));
-                            personA.setAcceptedEvent(event);
-                            PersonController.savePerson(personA);
-                        }
-
-                        Good code ahead
-                        */
+                        //add the Event-Person relationship and set its status to accepted
                         EventPersonController.addOrGetEventPerson(event, person, AcceptedState.ACCEPTED);
                         EventPersonController.changeStatus(event, person, AcceptedState.ACCEPTED, null);
                     }
                 } else {
-                    //cancellation: look for possible preceding acceptance. If yes, then delete person and create new. Else just save the person
-                    //do this for each event of the event series
+                    //cancellation
                     for (Event event : myEvents) {
-                        /*Person personB = new Person(singleUnreadSMS.getPhonenumber(), singleUnreadSMS.getName());
-                        String savedContactExistingSerial;
-                        savedContactExistingSerial = lookForSavedContact(singleUnreadSMS.getPhonenumber(), context);
-
-                        *//*Replace name if saved in contacts*//*
-                        if (savedContactExistingSerial != null) {
-                            personB.setName(savedContactExistingSerial);
-                        } else {
-                            personB.setName(personB.getName() + " (" + singleUnreadSMS.getPhonenumber() + ")");
-                        }
-                        List<Person> allAcceptances = PersonController.getEventAcceptedPersons(event);
-                        List<Person> allRejections = PersonController.getEventCancelledPersons(event);
-                        for (Person personAccepted : allAcceptances) {
-                            personAccepted.setPhoneNumber(shortifyPhoneNumber(personAccepted.getPhoneNumber()));
-                            personB.setPhoneNumber(shortifyPhoneNumber(personB.getPhoneNumber()));
-                            if (personAccepted.getPhoneNumber().equals(personB.getPhoneNumber())) {
-                                PersonController.deletePerson(personAccepted);
-                                personB.setCanceledEvent(event);
-                                personB.setRejectionReason(singleUnreadSMS.getExcuse());
-                                PersonController.savePerson(personB);
-                                hasAcceptedEarlier = true;
-                            }
-                        }
-                        for (Person personRejected : allRejections) {
-                            personRejected.setPhoneNumber(shortifyPhoneNumber(personRejected.getPhoneNumber()));
-                            personB.setPhoneNumber(shortifyPhoneNumber(personB.getPhoneNumber()));
-                            if (personRejected.getPhoneNumber().equals(personB.getPhoneNumber())) {
-                                hasRejectedEarlier = true;
-                            }
-                        }
-                        if (!hasAcceptedEarlier && !hasRejectedEarlier) {
-                            personB.setPhoneNumber(shortifyPhoneNumber(personB.getPhoneNumber()));
-                            personB.setCanceledEvent(event);
-                            personB.setRejectionReason(singleUnreadSMS.getExcuse());
-                            PersonController.savePerson(personB);
-                        }*/
+                        //add the Event-Person relationship and set its status to rejected
                         EventPersonController.addOrGetEventPerson(event, person, AcceptedState.REJECTED);
                         EventPersonController.changeStatus(event, person, AcceptedState.REJECTED, singleUnreadSMS.getExcuse());
                     }
                 }
             } else {
                 //it is a single event
-                /*Check if acceptance or cancellation*/
-                boolean hasAcceptedEarlier = false;
-                boolean hasRejectedEarlier = false;
                 if (singleUnreadSMS.isAcceptance()) {
-                    //acceptance: look for possible preceding rejection. If yes, then delete person and create new. Else just save the person
-                    /*List<Person> allRejections = PersonController.getEventCancelledPersons(EventController.getEventById(eventIdInSMS));
-                    List<Person> allAcceptances = PersonController.getEventAcceptedPersons(EventController.getEventById(eventIdInSMS));
-                    for (Person personRejected : allRejections) {
-                        personRejected.setPhoneNumber(shortifyPhoneNumber(personRejected.getPhoneNumber()));
-                        person.setPhoneNumber(shortifyPhoneNumber(person.getPhoneNumber()));
-                        if (personRejected.getPhoneNumber().equals(person.getPhoneNumber())) {
-                            PersonController.deletePerson(personRejected);
-                            person.setAcceptedEvent(EventController.getEventById(eventIdInSMS));
-                            PersonController.savePerson(person);
-                            hasRejectedEarlier = true;
-                        }
-
-                    }
-                    for (Person personAccepted : allAcceptances) {
-                        personAccepted.setPhoneNumber(shortifyPhoneNumber(personAccepted.getPhoneNumber()));
-                        person.setPhoneNumber(shortifyPhoneNumber(person.getPhoneNumber()));
-                        if (personAccepted.getPhoneNumber().equals(person.getPhoneNumber())) {
-                            hasAcceptedEarlier = true;
-                        }
-                    }
-                    if (!hasRejectedEarlier && !hasAcceptedEarlier) {
-                        person.setPhoneNumber(shortifyPhoneNumber(person.getPhoneNumber()));
-                        person.setAcceptedEvent(EventController.getEventById(eventIdInSMS));
-                        PersonController.savePerson(person);
-                    }*/
+                    //acceptance
                     Event event = EventController.getEventById(eventIdInSMS);
                     if (event != null) {
+                        //add the Event-Person relationship and set its status to accepted
                         EventPersonController.addOrGetEventPerson(event, person, AcceptedState.ACCEPTED);
                         EventPersonController.changeStatus(event, person, AcceptedState.ACCEPTED, null);
                     }
                 } else {
-                    //cancellation: look for possible preceding acceptance. If yes, then delete person and create new. Else just save the person
-                    /*List<Person> allAcceptances = PersonController.getEventAcceptedPersons(EventController.getEventById(eventIdInSMS));
-                    List<Person> allRejections = PersonController.getEventCancelledPersons(EventController.getEventById(eventIdInSMS));
-                    for (Person personAccepted : allAcceptances) {
-                        personAccepted.setPhoneNumber(shortifyPhoneNumber(personAccepted.getPhoneNumber()));
-                        person.setPhoneNumber(shortifyPhoneNumber(person.getPhoneNumber()));
-                        if (personAccepted.getPhoneNumber().equals(person.getPhoneNumber())) {
-                            PersonController.deletePerson(personAccepted);
-                            person.setCanceledEvent(EventController.getEventById(eventIdInSMS));
-                            person.setRejectionReason(singleUnreadSMS.getExcuse());
-                            PersonController.savePerson(person);
-                            hasAcceptedEarlier = true;
-                        }
-
-                    }
-                    for (Person personRejected : allRejections) {
-                        personRejected.setPhoneNumber(shortifyPhoneNumber(personRejected.getPhoneNumber()));
-                        person.setPhoneNumber(shortifyPhoneNumber(person.getPhoneNumber()));
-                        if (personRejected.getPhoneNumber().equals(person.getPhoneNumber())) {
-                            hasRejectedEarlier = true;
-                        }
-                    }
-                    if (!hasAcceptedEarlier && !hasRejectedEarlier) {
-                        person.setPhoneNumber(shortifyPhoneNumber(person.getPhoneNumber()));
-                        person.setCanceledEvent(EventController.getEventById(eventIdInSMS));
-                        person.setRejectionReason(singleUnreadSMS.getExcuse());
-                        PersonController.savePerson(person);
-                    }*/
+                    //cancellation
                     Event event = EventController.getEventById(eventIdInSMS);
                     if (event != null) {
+                        //add the Event-Person relationship and set its status to rejected
                         EventPersonController.addOrGetEventPerson(event, person, AcceptedState.REJECTED);
                         EventPersonController.changeStatus(event, person, AcceptedState.REJECTED, singleUnreadSMS.getExcuse());
                     }
@@ -497,7 +383,7 @@ public class SmsReceiver extends BroadcastReceiver {
     }
 
     /**
-     * looks for an eventual startEvent in the database
+     * checks the database for a potential startEvent in the database
      *
      * @param eventIdInSMS, the {@link Long} number of the event
      * @return {@code true} if it is a serial {@link Event}
@@ -505,7 +391,7 @@ public class SmsReceiver extends BroadcastReceiver {
     private boolean isSerialEvent(Long eventIdInSMS) {
         try {
             Event x = EventController.getEventById(eventIdInSMS).getStartEvent();
-                return x != null;
+            return x != null;
 
         } catch (Exception e) {
             return false;
@@ -513,12 +399,15 @@ public class SmsReceiver extends BroadcastReceiver {
     }
 
     /**
-     * replaces all the symbols in a phone number
+     * removes all the symbols in a phone number
+     * do not use this to save phone numbers into the database
+     * phone numbers should be saved in E.164 format
+     * @// TODO: 14.10.19 actually just remove this entirely if you find the time because it only works for german numbers
      *
      * @param number, a {@link String}
      * @return a {@link String} of the shorter number
      */
-    private String shortifyPhoneNumber(String number) {
+    private String shortenPhoneNumber(String number) {
         /*Take out all the chars not being numbers and return the numbers after "1" (German mobile number!!!)*/
         number = number.replace("(", "");
         number = number.replace(")", "");
@@ -531,13 +420,12 @@ public class SmsReceiver extends BroadcastReceiver {
             return number;
         } catch (StringIndexOutOfBoundsException variablenname) {
             // Ausländische Nummer
-
         }
         return "100000000";
     }
 
     /**
-     * Get all the contacts, see if number is identical after "shortifying" it, if identical, replace the name
+     * Get all the contacts, see if number is identical after "shortening" it, if identical, return the name
      *
      * @param address, a {@link String} of the number
      * @param context, the {@link Context}
@@ -547,22 +435,27 @@ public class SmsReceiver extends BroadcastReceiver {
         /*Get all the contacts, see if number is identical after "shortifying" it, if identical, replace the name*/
         ContentResolver cr = context.getContentResolver();
         Cursor c = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+        // if there are more than 0 contacts
         if ((c != null ? c.getCount() : 0) > 0) {
-            while (c != null && c.moveToNext()) {
+            while (c.moveToNext()) {
                 String id = c.getString(c.getColumnIndex(ContactsContract.Contacts._ID));
                 String name = c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+                // if more than 0 contacts have phone numbers
                 if (c.getInt(c.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
                     Cursor pCur = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{id}, null);
-                    while (pCur.moveToNext()) {
-                        String phoneNo = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        phoneNo = shortifyPhoneNumber(phoneNo);
-                        address = shortifyPhoneNumber(address);
-                        if (phoneNo.equals(address)) {
-                            pCur.close();
-                            return name;
+                    if (pCur != null) {
+                        while (pCur.moveToNext()) {
+                            // check if the saved number is equal to the received number, if so return the name
+                            String phoneNo = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                            phoneNo = shortenPhoneNumber(phoneNo);
+                            address = shortenPhoneNumber(address);
+                            if (phoneNo.equals(address)) {
+                                pCur.close();
+                                return name;
+                            }
                         }
+                        pCur.close();
                     }
-                    pCur.close();
                 }
             }
             c.close();
@@ -574,8 +467,7 @@ public class SmsReceiver extends BroadcastReceiver {
     }
 
     /**
-     * Creates a notification with the text in case of a mismatch between the creatorEventId in the SMS received and the DB.
-     *
+     * Creates a notification with the text in case the received creatorEventId in the SMS doesn't exist in the database
      *
      * @param context, a {@link Context}
      * @param id,      some {@link int} required
@@ -597,6 +489,7 @@ public class SmsReceiver extends BroadcastReceiver {
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
+        // as of android version 26 a NotificationChannel needs to be created before setting a notification
         if (Build.VERSION.SDK_INT >= 26) {
             // Add as notification
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);

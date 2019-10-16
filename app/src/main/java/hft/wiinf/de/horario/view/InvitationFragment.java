@@ -18,16 +18,14 @@ import hft.wiinf.de.horario.model.Event;
 
 
 /**
- * A fragment representing a list of Items.
+ * A fragment representing a list of {@link Event}s that the user is invited to.
  * <p/>
  * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
  * interface.
  */
 public class InvitationFragment extends Fragment {
 
-    // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
-    // TODO: Customize parameters
     private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
 
@@ -38,7 +36,6 @@ public class InvitationFragment extends Fragment {
     public InvitationFragment() {
     }
 
-    // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
     public static InvitationFragment newInstance(int columnCount) {
         InvitationFragment fragment = new InvitationFragment();
@@ -48,6 +45,11 @@ public class InvitationFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * gets the column count argument from the saved instance state
+     *
+     * @param savedInstanceState the state to which the fragment should be restored after a system event
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +59,15 @@ public class InvitationFragment extends Fragment {
         }
     }
 
+    /**
+     * Inflates the layout fragment_invitation_list.xml and sets a {@link MyInvitationRecyclerViewAdapter} with
+     * {@link Event}s the user has been invited to for the RecyclerView in it
+     *
+     * @param inflater           LayoutInflater for inflating the layout into views
+     * @param container          the parent view of the fragment
+     * @param savedInstanceState the saved state of the fragment from before some system event changed it
+     * @return the inflated layout's view
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -78,6 +89,12 @@ public class InvitationFragment extends Fragment {
     }
 
 
+    /**
+     * this method is called when the view created in onCreateView() is attached to the root view
+     * checks if the context is an instance of OnListFragmentInteractionListener and throws an exception if it is not
+     * else it saves the context in a variable
+     * @param context the parent activity of the fragment
+     */
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -89,6 +106,10 @@ public class InvitationFragment extends Fragment {
         }
     }
 
+    /**
+     * removes the saved context if the fragment is detached from the parent activity
+     * do not ask me what this means but it has something to do with the fragment lifecycle
+     */
     @Override
     public void onDetach() {
         super.onDetach();
@@ -106,7 +127,6 @@ public class InvitationFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnListFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onListFragmentInteraction(Event item);
     }
 }

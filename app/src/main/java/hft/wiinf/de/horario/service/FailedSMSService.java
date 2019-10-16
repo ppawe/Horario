@@ -34,13 +34,14 @@ public class FailedSMSService extends JobService {
      */
     private Bundle sms;
     /**
-     * The Phone state, to check weather it is in service or not
+     * The Phone state, to check whether it is in service or not
      */
     private int phone_state;
 
     /**
      * job will check if there is service and if the sim is ready (everything what needs to be checked for sending sms)
      * after that it will send the SMS and set a notification
+     *
      * @param params
      * @return boolean if the job has finished successfully
      */
