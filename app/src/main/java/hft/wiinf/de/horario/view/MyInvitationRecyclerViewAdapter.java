@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import hft.wiinf.de.horario.R;
@@ -58,7 +59,7 @@ public class MyInvitationRecyclerViewAdapter extends RecyclerView.Adapter<MyInvi
     }
 
     /**
-     * gets the Viewholder which should have its content updated and updates it with the information
+     * gets the ViewHolder that should have its content updated and updates it with the information
      * of the {@link Event} at the given position in the Adapter's data set
      * @param holder the ViewHolder that should be updated
      * @param position the position of the Event that should be displayed
@@ -67,7 +68,14 @@ public class MyInvitationRecyclerViewAdapter extends RecyclerView.Adapter<MyInvi
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
         if (!isListEmpty) {
-            holder.mContentView.setText(mValues.get(position).getShortTitle());
+            SimpleDateFormat dayFormat = new SimpleDateFormat("dd.MM.yyyy");
+            SimpleDateFormat hourFormat = new SimpleDateFormat("HH:mm");
+            Event invitation = mValues.get(position);
+            String invitationDescription = invitation.getShortTitle() + " " +
+                    dayFormat.format(invitation.getStartTime()) + " " +
+                    hourFormat.format(invitation.getStartTime()) + " - " +
+                    hourFormat.format(invitation.getEndTime());
+            holder.mContentView.setText(invitationDescription);
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

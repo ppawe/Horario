@@ -17,7 +17,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -77,7 +76,6 @@ public class EventRejectEventFragment extends Fragment {
 
     /**
      * inflates fragment_event_reject_event.xml into a view
-     *
      * @param inflater           a LayoutInflater used for inflating layouts into views
      * @param container          the parent view of the fragment
      * @param savedInstanceState the saved state of the fragment from before a system event changed it
@@ -176,27 +174,23 @@ public class EventRejectEventFragment extends Fragment {
                     @Override
                     public void onClick(View v) {
                         event = EventController.getEventById((getEventID()));
-
-                        //delete alarm for notification
-                        NotificationController.deleteAlarmNotification(getContext(), event);
-                        rejectMessage = spinner_reason.getSelectedItem().toString() + "!" + reason_for_rejection.getText().toString();
-                        //If an Event of a recurring event is cancelled, all events
-                        // of the recurring event are deleted. This way the user can Scan the
-                        // Event again and confirm it again.
-
-                        if (event.getStartEvent() != null && event.getStartEvent().getId().equals(event.getId())) {
-                            EventPersonController.changeStatusForSerial(event.getStartEvent(), PersonController.getPersonWhoIam(), AcceptedState.REJECTED, rejectMessage);
-                        } else {
-                            EventPersonController.changeStatus(event, PersonController.getPersonWhoIam(), AcceptedState.REJECTED, rejectMessage);
-                        }
                         //SMS
-
                         creatorEventId = event.getCreatorEventId();
-                        Log.i("Absagegrund", rejectMessage);
                         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
                             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.SEND_SMS}, 2);
                         }
                         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                            //If an Event of a recurring event is cancelled, all events
+                            // of the recurring event are deleted. This way the user can Scan the
+                            // Event again and confirm it again.
+                            if (event.getStartEvent() != null && event.getStartEvent().getId().equals(event.getId())) {
+                                EventPersonController.changeStatusForSerial(event.getStartEvent(), PersonController.getPersonWhoIam(), AcceptedState.REJECTED, rejectMessage);
+                            } else {
+                                EventPersonController.changeStatus(event, PersonController.getPersonWhoIam(), AcceptedState.REJECTED, rejectMessage);
+                            }
+                            //delete alarm for notification
+                            NotificationController.deleteAlarmNotification(getContext(), event);
+                            rejectMessage = spinner_reason.getSelectedItem().toString() + "!" + reason_for_rejection.getText().toString();
                             new SendSmsController().sendSMS(getContext(), phNumber, rejectMessage, false, creatorEventId, shortTitle);
                             Toast.makeText(getContext(), R.string.reject_event_hint, Toast.LENGTH_SHORT).show();
                         } else {

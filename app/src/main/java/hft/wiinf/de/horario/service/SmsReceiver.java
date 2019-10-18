@@ -239,6 +239,7 @@ public class SmsReceiver extends BroadcastReceiver {
             }
             return true;
         }
+        Log.d("test", "tst");
         return false;
     }
 

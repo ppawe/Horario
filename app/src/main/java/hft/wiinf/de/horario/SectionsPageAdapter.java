@@ -12,12 +12,12 @@ import java.util.List;
  * {@link hft.wiinf.de.horario.view.SettingsActivity})
  * Fragments are added to a list along with a title for them and they are retrieved according to their position
  */
-class SectionsPageAdapterActivity extends FragmentPagerAdapter {
+class SectionsPageAdapter extends FragmentPagerAdapter {
 
     private final List<Fragment> mFragmentList = new ArrayList<>();
     private final List<String> mFragmentTitleList = new ArrayList<>();
 
-    public SectionsPageAdapterActivity(FragmentManager fragmentManager) {
+    public SectionsPageAdapter(FragmentManager fragmentManager) {
         super(fragmentManager);
     }
 

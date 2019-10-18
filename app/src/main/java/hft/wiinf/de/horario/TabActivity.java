@@ -77,7 +77,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     private static final int PERMISSION_REQUEST_READ_PHONE_STATE = 0;
     private int PERMISSION_REQUEST_RECEIVE_SMS = 1;
     private int PERMISSION_REQUEST_READ_CONTACTS = 2;
-    private SectionsPageAdapterActivity mSectionsPageAdapter;
+    private SectionsPageAdapter mSectionsPageAdapter;
     private ViewPager mViewPager;
     private TabLayout tabLayout;
     private static int startTab;
@@ -152,7 +152,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
             personMe = new Person(true, "", "");
         startTab = personMe.getStartTab();
 
-        mSectionsPageAdapter = new SectionsPageAdapterActivity(getSupportFragmentManager());
+        mSectionsPageAdapter = new SectionsPageAdapter(getSupportFragmentManager());
 
         //Set up the ViewPager with the sections adapter.
         mViewPager = findViewById(R.id.container);
@@ -410,7 +410,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
             eventStartDate = dateFormat.format(invitedEvent.getStartTime());
             eventEndDate = dateFormat.format(invitedEvent.getEndDate());
             eventStartTime = hourFormat.format(invitedEvent.getStartTime());
-            eventEndTime = hourFormat.format(invitedEvent.getStartTime());
+            eventEndTime = hourFormat.format(invitedEvent.getEndTime());
             eventRepetition = invitedEvent.getRepetition().name();
             eventShortTitle = invitedEvent.getShortTitle();
             eventPlace = invitedEvent.getPlace();
@@ -516,7 +516,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
 
     /**
      * displays an error message if an error occurs while scanning a QR Code
-     * @param noScanData a controller for an exception that occured
+     * @param noScanData a controller for an exception that occurred
      */
     @Override
     public void scanResultData(NoScanResultExceptionController noScanData) {
@@ -614,7 +614,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
      * @param viewPager the ViewPager that manages the activity's tabs
      */
     private void setupViewPager(ViewPager viewPager) {
-        SectionsPageAdapterActivity adapter = mSectionsPageAdapter;
+        SectionsPageAdapter adapter = mSectionsPageAdapter;
         adapter.addFragment(new EventOverviewActivity(), "");
         adapter.addFragment(new CalendarActivity(), "");
         adapter.addFragment(new SettingsActivity(), "");
@@ -808,6 +808,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                             startActivity(intent);*/
                             alertDialogAskForFinalDecission.dismiss();
                             //write Toast, event is in database
+                            EventController.deleteEvent(invitedEvent);
                             Toast toast = Toast.makeText(v.getContext(), R.string.eventIsInDatabase, Toast.LENGTH_LONG);
                             toast.show();
 
@@ -1334,6 +1335,5 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                 dialogListener();
             }
         }
-        //leet
     }
 }

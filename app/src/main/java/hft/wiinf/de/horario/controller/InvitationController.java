@@ -17,7 +17,11 @@ public class InvitationController {
      * @return boolean representing whether the event is already saved
      */
     public static boolean eventAlreadySaved(@NonNull InvitationString invitationString) {
-        Person creator = new Select().from(Person.class).where("phoneNumber = ?", invitationString.getCreatorPhoneNumber()).executeSingle();
+        Person creator = new Select()
+                .from(Person.class)
+                .where("phoneNumber = ?", invitationString.getCreatorPhoneNumber())
+                .or("phoneNumber = ?", invitationString.getReceivedFromNumber())
+                .executeSingle();
         if (creator != null) {
             return new Select().from(Event.class).where("creator = ?", creator.getId()).and("creatorEventId = ?", invitationString.getCreatorEventId()).exists();
         }
