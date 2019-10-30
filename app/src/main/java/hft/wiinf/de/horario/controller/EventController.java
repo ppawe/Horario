@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 
 import com.activeandroid.query.Select;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -181,7 +182,7 @@ public class EventController {
                 repetitionEvent.setPlace(firstEvent.getPlace());
                 repetitionEvent.setDescription(firstEvent.getDescription());
                 repetitionEvent.setRepetition(firstEvent.getRepetition());
-                repetitionEvent.setEndDate(firstEvent.getEndDate());
+                repetitionEvent.setEndRepetitionDate(firstEvent.getEndRepetitionDate());
                 repetitionEvent.setShortTitle(firstEvent.getShortTitle());
                 repetitionEvent.setStartEvent(firstEvent);
                 repetitionEvent.setCreatorEventId(firstEvent.getCreatorEventId());
@@ -194,7 +195,7 @@ public class EventController {
                 temporary.add(fieldNumber, i);
                 repetitionEvent.setEndTime(temporary.getTime());
                 //if end of repetition is reached, stop else save the new Event;
-                if (repetitionEvent.getStartTime().after(firstEvent.getEndDate()))
+                if (repetitionEvent.getStartTime().after(firstEvent.getEndRepetitionDate()))
                     break;
                 //save the new event
                 saveEvent(repetitionEvent);
@@ -251,7 +252,7 @@ public class EventController {
         event.setCreator(PersonController.addOrGetPerson(invitationString.getReceivedFromNumber() != null ? invitationString.getReceivedFromNumber() : invitationString.getCreatorPhoneNumber(), invitationString.getCreatorName()));
         event.setCreatorEventId(Long.valueOf(invitationString.getCreatorEventId()));
         event.setDescription(invitationString.getDescription());
-        event.setEndDate(invitationString.getEndDateAsDate());
+        event.setEndRepetitionDate(invitationString.getEndOfRepetitionAsDate());
         event.setEndTime(invitationString.getEndTimeAsDate());
         event.setStartTime(invitationString.getStartTimeAsDate());
         event.setShortTitle(invitationString.getTitle());
@@ -271,5 +272,69 @@ public class EventController {
             }
         }
         return event;
+    }
+
+    public static String createEventDescription(Event event){
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
+        SimpleDateFormat simpleTimeFormat = new SimpleDateFormat("HH:mm");
+
+        String startTime = simpleTimeFormat.format(event.getStartTime());
+        String endTime = simpleTimeFormat.format(event.getEndTime());
+        String startDate = simpleDateFormat.format(event.getStartTime());
+        String endDate = simpleDateFormat.format(event.getEndTime());
+        String organiser = event.getCreator().getName();
+        String repetition;
+        String endOfRepetition = simpleDateFormat.format(event.getEndRepetitionDate());
+        String place = event.getPlace();
+        String eventDescription = event.getDescription();
+
+        switch (event.getRepetition()){
+            case DAILY:
+                repetition = "täglich";
+                break;
+            case WEEKLY:
+                repetition = "wöchentlich";
+                break;
+            case MONTHLY:
+                repetition = "monatlich";
+                break;
+            case YEARLY:
+                repetition = "jährlich";
+                break;
+                default:
+                    repetition = "";
+                    break;
+        }
+
+        if(event.getRepetition() != Repetition.NONE){
+           return "Zeit: " + startDate + " " + startTime + " bis " +(startDate.equals(endDate) ? "" : endDate + " ") + endTime + "\n" + "Ort: " + place + "\n" +
+                    "Organisator: " + organiser + "\n" + "Wiederholung: " + repetition +" bis " + endOfRepetition + "\n" +
+                    "Termindetails: " + eventDescription;
+        }else{
+            return "Zeit: " + startDate + " " + startTime + " bis " +(startDate.equals(endDate) ? "" : endDate + " ") + endTime + "\n" + "Ort: " + place + "\n" +
+                    "Organisator: " + organiser + "\n" +
+                    "Termindetails: " + eventDescription;
+        }
+    }
+    //format: creatorEventId | Startdate | Enddate | Starttime | Endtime | Repetition | EndOfRepetition | Title | Place | Description | CreatorName | CreatorPhoneNumber
+    public static String createEventInvitation(Event event){
+        String split = " | ";
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
+        SimpleDateFormat simpleTimeFormat = new SimpleDateFormat("HH:mm");
+        StringBuilder sb = new StringBuilder();
+        sb.append(event.getCreatorEventId()).append(split);
+        sb.append(simpleDateFormat.format(event.getStartTime())).append(split);
+        sb.append(simpleDateFormat.format(event.getEndTime())).append(split);
+        sb.append(simpleTimeFormat.format(event.getStartTime())).append(split);
+        sb.append(simpleTimeFormat.format(event.getEndTime())).append(split);
+        sb.append(event.getRepetition()).append(split);
+        sb.append(simpleDateFormat.format(event.getEndRepetitionDate())).append(split);
+        sb.append(event.getShortTitle()).append(split);
+        sb.append(event.getPlace()).append(split);
+        sb.append(event.getDescription()).append(split);
+        sb.append(event.getCreator().getName()).append(split);
+        sb.append(event.getCreator().getPhoneNumber());
+
+        return sb.toString();
     }
 }

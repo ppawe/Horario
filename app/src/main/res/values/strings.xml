@@ -248,4 +248,6 @@
     <string name="textview_month">TextView Month</string>
     <string name="textview_day">TextView Day</string>
     <string name="no_new_invitations">Keine neuen Einladungen</string>
+    <string name="endDatum">Enddatum</string>
+    <string name="delete_event">TERMIN LÖSCHEN</string>
 </resources>

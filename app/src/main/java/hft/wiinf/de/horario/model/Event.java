@@ -10,11 +10,10 @@ import java.util.Date;
 
 
 // Class for both standard and serial event
-//start and endtime are both dates, not as in the gui one date and two times
 
 /**
  * represents a calendar event (both serial and one time).
- * a serial event is represented as a collection of events in the database, all events refer to the start event via the startEvent attribute
+ * a serial event is represented as a collection of events in the database, all events in a series refer to the start event via the startEvent attribute
  */
 @Table(name = "events")
 public class Event extends Model {
@@ -34,7 +33,7 @@ public class Event extends Model {
     @Column
     private Repetition repetition = Repetition.NONE;
     @Column
-    private Date endDate = new Date();
+    private Date endRepetitionDate = new Date();
 
     @Column
     //the first event of an repeating / serial event
@@ -175,17 +174,17 @@ public class Event extends Model {
      *
      * @return the end date of a repeating event (null if it is a single event)
      */
-    public Date getEndDate() {
-        return endDate;
+    public Date getEndRepetitionDate() {
+        return endRepetitionDate;
     }
 
     /**
      * Sets end date.
      *
-     * @param endDate the end date of a repeating event (null if it is a single event)
+     * @param endRepetitionDate the end date of a repeating event (null if it is a single event)
      */
-    public void setEndDate(Date endDate) {
-        this.endDate = endDate;
+    public void setEndRepetitionDate(Date endRepetitionDate) {
+        this.endRepetitionDate = endRepetitionDate;
     }
 
     /**
@@ -242,7 +241,6 @@ public class Event extends Model {
     public void setCreatorEventId(long creatorEventId) {
         this.creatorEventId = creatorEventId;
     }
-
 
 }
 

@@ -333,7 +333,7 @@ public class EventPersonController {
         List<Event> events = getAllPendingEventsForPerson(person);
         Date now = new Date();
         for (Event event : events) {
-            if (event.getStartTime().before(now) && event.getRepetition() == Repetition.NONE || event.getRepetition() != Repetition.NONE && event.getEndDate().before(now)) {
+            if (event.getStartTime().before(now) && event.getRepetition() == Repetition.NONE || event.getRepetition() != Repetition.NONE && event.getEndRepetitionDate().before(now)) {
                 EventController.deleteEvent(event);
             }
         }
@@ -347,7 +347,7 @@ public class EventPersonController {
         List<Event> events = getAllInvitedEventsForPerson(person);
         Date now = new Date();
         for (Event event : events) {
-            if (event.getStartTime().before(now) && event.getRepetition() == Repetition.NONE || event.getRepetition() != Repetition.NONE && event.getEndDate().before(now)) {
+            if (event.getStartTime().before(now) && event.getRepetition() == Repetition.NONE || event.getRepetition() != Repetition.NONE && event.getEndRepetitionDate().before(now)) {
                 EventController.deleteEvent(event);
             }
         }

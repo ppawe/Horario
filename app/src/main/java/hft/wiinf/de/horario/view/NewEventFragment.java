@@ -65,7 +65,7 @@ public class NewEventFragment extends Fragment {
     private Calendar endOfRepetition = Calendar.getInstance();
     // elements of the gui
     private EditText editText_description, edittext_shortTitle, edittext_room, edittext_date,
-            edittext_startTime, editText_endTime, edittext_userName, editText_endOfRepetition;
+            edittext_startTime, editText_endTime, edittext_userName, editText_endOfRepetition, mPhoneNumber, editText_endDate;
     private TextView textView_endofRepetiton;
     private Spinner spinner_repetition;
     private CheckBox checkBox_serialEvent;
@@ -77,7 +77,6 @@ public class NewEventFragment extends Fragment {
     private int counter = 0;
     private int PERMISSION_REQUEST_READ_PHONE_STATE = 0;
     private AlertDialog.Builder mAlertDialogBuilder;
-    private EditText mPhoneNumber;
     private AlertDialog mAlertDialog;
     private Dialog mDialog;
     private DatePickerDialog mDatePickerDialog;
@@ -120,9 +119,10 @@ public class NewEventFragment extends Fragment {
         editText_description = view.findViewById(R.id.newEvent_editText_description);
         edittext_room = view.findViewById(R.id.newEvent_textEdit_room);
         edittext_date = view.findViewById(R.id.newEvent_editText_Date);
+        editText_endDate = view.findViewById(R.id.newEvent_editText_endDate);
         edittext_startTime = view.findViewById(R.id.newEvent_editText_startTime);
         editText_endTime = view.findViewById(R.id.newEvent_textEdit_endTime);
-        edittext_userName = view.findViewById(R.id.unewEvent_textEdit_userName);
+        edittext_userName = view.findViewById(R.id.newEvent_textEdit_userName);
         checkBox_serialEvent = view.findViewById(R.id.newEvent_checkBox_SerialEvent);
         spinner_repetition = view.findViewById(R.id.newEvent_spinner_repetition);
         editText_endOfRepetition = view.findViewById(R.id.newEvent_textEdit_endOfRepetition);
@@ -162,6 +162,20 @@ public class NewEventFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 getDate();
+            }
+        });
+        editText_endDate.setShowSoftInputOnFocus(false);
+        editText_endDate.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus)
+                    getEndDate();
+            }
+        });
+        editText_endDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getEndDate();
             }
         });
         edittext_startTime.setShowSoftInputOnFocus(false);
@@ -306,13 +320,37 @@ public class NewEventFragment extends Fragment {
             @Override
             public void onDateSet(DatePicker datePicker, int year, int month, int dayOfMonth) {
                 startTime.set(year, month, dayOfMonth);
-                endTime.set(year, month, dayOfMonth);
                 //format the choosen time as HH:mm and write it into the date text field
                 edittext_date.setText(dateFormat.format(startTime.getTime()));
             }
         };
         mDatePickerDialog = new DatePickerDialog(this.getContext(), listener, startTime.get(Calendar.YEAR),
                 startTime.get(Calendar.MONTH), startTime.get(Calendar.DAY_OF_MONTH));
+        mDatePickerDialog.show();
+    }
+    /**
+     * opens a dialog that allows the user to pick a valid date and sets it to the date field
+     */
+    private void getEndDate() {
+        //close keyboard if it's open
+        if (getActivity() != null && getActivity().getCurrentFocus() != null) {
+            Context ctx = getContext();
+            assert ctx != null;
+            InputMethodManager mngr = (InputMethodManager) getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
+            assert mngr != null;
+            mngr.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+        }
+        // create a listener for the date picker dialog: update the date parts (year, month, date) of start and end time with the selected values
+        DatePickerDialog.OnDateSetListener listener = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker datePicker, int year, int month, int dayOfMonth) {
+                endTime.set(year, month, dayOfMonth);
+                //format the choosen time as HH:mm and write it into the date text field
+                editText_endDate.setText(dateFormat.format(endTime.getTime()));
+            }
+        };
+        mDatePickerDialog = new DatePickerDialog(this.getContext(), listener, startTime.get(Calendar.YEAR),
+                endTime.get(Calendar.MONTH), endTime.get(Calendar.DAY_OF_MONTH));
         mDatePickerDialog.show();
     }
 
@@ -444,7 +482,7 @@ public class NewEventFragment extends Fragment {
         // only save the end of repetition if the repetition is not none, if it's an serial event
         // (repetition not none) save it as an serial event, else as an "normal" event
         if (event.getRepetition() != Repetition.NONE) {
-            event.setEndDate(endOfRepetition.getTime());
+            event.setEndRepetitionDate(endOfRepetition.getTime());
             EventController.saveSerialevent(event);
             List<Event> savedEvents = EventController.findFollowUpEvents(event.getId());
             for (Event singleEvent : savedEvents) {
@@ -539,6 +577,7 @@ public class NewEventFragment extends Fragment {
         editText_description.setText("");
         edittext_room.setText("");
         edittext_date.setText("");
+        editText_endDate.setText("");
         edittext_startTime.setText("");
         editText_endTime.setText("");
         checkBox_serialEvent.setChecked(false);
@@ -554,7 +593,7 @@ public class NewEventFragment extends Fragment {
      * @return true if fields are valid; false if not
      */
     private boolean checkValidity() {
-        if (editText_description.getText().toString().equals("") || edittext_shortTitle.getText().toString().equals("") || edittext_date.getText().toString().equals("") || edittext_startTime.getText().toString().equals("") || editText_endTime.getText().toString().equals("") || edittext_userName.getText().toString().equals("") || edittext_room.getText().toString().equals("")) {
+        if (editText_description.getText().toString().equals("") || edittext_shortTitle.getText().toString().equals("") || edittext_date.getText().toString().equals("") || editText_endDate.getText().toString().equals("") || edittext_startTime.getText().toString().equals("") || editText_endTime.getText().toString().equals("") || edittext_userName.getText().toString().equals("") || edittext_room.getText().toString().equals("")) {
             Toast.makeText(getContext(), R.string.empty_fields, Toast.LENGTH_SHORT).show();
             return false;
         }
@@ -717,9 +756,9 @@ public class NewEventFragment extends Fragment {
 
     /**
      * processes whether or not the user granted the app permission to read their phone number
-     * if they said no and didn't check "never ask again" it simply asks again 2 times
-     * then simply asks the user to enter their phone number manually
-     * if they granted the permission the phone number is read
+     * if they responded no and didn't check "never ask again" it simply asks again 2 times
+     * then goes on to ask the user to enter their phone number manually
+     * if they granted the permission the phone number is read from their Sim Card
      * @param requestCode the code of the permission request
      * @param permissions the permissions that the user was asked for
      * @param grantResults the results for the requests

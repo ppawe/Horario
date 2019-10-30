@@ -87,9 +87,9 @@ public class InvitationString {
     }
 
     public Date getEndDateAsDate() {
-        SimpleDateFormat format = new SimpleDateFormat("HH:mm dd.MM.yyyy");
+        SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
         try {
-            return format.parse("23:59 " + getEndDate());
+            return format.parse(getEndDate());
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -116,10 +116,10 @@ public class InvitationString {
     }
 
     public Date getEndTimeAsDate() {
-        String startTimeString = getEndTime() + " " + getStartDate();
+        String endTimeString = getEndTime() + " " + getEndDate();
         SimpleDateFormat format = new SimpleDateFormat("HH:mm dd.MM.yyyy");
         try {
-            return format.parse(startTimeString);
+            return format.parse(endTimeString);
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -146,24 +146,38 @@ public class InvitationString {
         }
     }
 
-    public String getTitle() {
+    private String getEndOfRepetition() {
         return invitation.split(" \\| ")[6];
     }
 
-    public String getPlace() {
+    public Date getEndOfRepetitionAsDate() {
+        SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
+        try {
+            return format.parse(getEndOfRepetition());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String getTitle() {
         return invitation.split(" \\| ")[7];
     }
 
-    public String getDescription() {
+    public String getPlace() {
         return invitation.split(" \\| ")[8];
     }
 
-    public String getCreatorName() {
+    public String getDescription() {
         return invitation.split(" \\| ")[9];
     }
 
-    public String getCreatorPhoneNumber() {
+    public String getCreatorName() {
         return invitation.split(" \\| ")[10];
+    }
+
+    public String getCreatorPhoneNumber() {
+        return invitation.split(" \\| ")[11];
     }
 
 

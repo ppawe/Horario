@@ -400,83 +400,22 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                         }
                     });
 
-            //Put StringBuffer in an Array and split the Values to new String Variables
-            //Index: 0 = CreatorID; 1 = StartDate; 2 = EndDate; 3 = StartTime; 4 = EndTime;
-            //       5 = Repetition; 6 = ShortTitle; 7 = Place; 8 = Description;  9 = EventCreatorName; 10 = phoneNumber;
-
             DateFormat hourFormat = new SimpleDateFormat("HH:mm");
             DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
             eventCreatorEventId = String.valueOf(invitedEvent.getCreatorEventId());
             eventStartDate = dateFormat.format(invitedEvent.getStartTime());
-            eventEndDate = dateFormat.format(invitedEvent.getEndDate());
+            eventEndDate = dateFormat.format(invitedEvent.getEndRepetitionDate());
             eventStartTime = hourFormat.format(invitedEvent.getStartTime());
             eventEndTime = hourFormat.format(invitedEvent.getEndTime());
-            eventRepetition = invitedEvent.getRepetition().name();
             eventShortTitle = invitedEvent.getShortTitle();
             eventPlace = invitedEvent.getPlace();
             eventDescription = invitedEvent.getDescription();
             eventCreatorName = invitedEvent.getCreator().getName();
             eventCreatorPhoneNumber = invitedEvent.getCreator().getPhoneNumber();
 
-            // There are two SecurityQuery
-            // - First this two (unused) Variables are checked to Create an Exception if the Array isn't in the correct Form
-            // - Second is the Switch-Case Method. If der no correct eventRepetition String inside
-            // it will show an Error an the Cancel Button.
-            String creatorID = String.valueOf(invitedEvent.getCreator().getId());
-            String phoneNummber = eventCreatorPhoneNumber;
-
-
-            // Change the DataBase Repetition Information in a German String for the Repetition Element
-            // like "Daily" into "täglich" and so on
-            switch (eventRepetition) {
-                case "YEARLY":
-                    eventRepetition = getString(R.string.yearly);
-                    break;
-                case "MONTHLY":
-                    eventRepetition = getString(R.string.monthly);
-                    break;
-                case "WEEKLY":
-                    eventRepetition = getString(R.string.weekly);
-                    break;
-                case "DAILY":
-                    eventRepetition = getString(R.string.daily);
-                    break;
-                case "NONE":
-                    eventRepetition = "";
-                    break;
-                default:
-                    qrScanner_reject.setVisibility(View.GONE);
-                    qrScanner_result_eventSave_without_assign.setVisibility(View.GONE);
-                    qrScanner_result_eventSave.setVisibility(View.GONE);
-                    qrScanner_result_abort.setVisibility(View.VISIBLE);
-                    qrScanner_result_toCalender.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            restartApp(whichFragmentTag);
-                            afterScanningDialogAction.dismiss();
-                        }
-                    });
-
-            }
-
             // Event eventShortTitle in Headline with eventCreatorName
             qrScanner_result_headline.setText(eventShortTitle + " " + getString(R.string.from) + eventCreatorName);
-            // Check for a Repetition Event and Change the Description Output with and without
-            // Repetition Element inside.
-            if (eventRepetition.equals("")) {
-                qrScanner_result_description.setText(getString(R.string.on) + eventStartDate
-                        + getString(R.string.find) + getString(R.string.from) + eventStartTime + getString(R.string.until)
-                        + eventEndTime + getString(R.string.clock_at_room) + eventPlace + " " + eventShortTitle
-                        + getString(R.string.instead_of) + "\n" + "\n" + getString(R.string.eventDetails)
-                        + eventDescription);
-            } else {
-                qrScanner_result_description.setText(getString(R.string.as_of) + eventStartDate
-                        + getString(R.string.until) + eventEndDate + getString(R.string.find)
-                        + eventRepetition + getString(R.string.at) + eventStartTime + getString(R.string.clock_to)
-                        + eventEndTime + getString(R.string.clock_at_room) + eventPlace + " " + eventShortTitle
-                        + getString(R.string.instead_of) + "\n" + "\n" + getString(R.string.eventDetails) + eventDescription);
-
-            }
+            qrScanner_result_description.setText(EventController.createEventDescription(invitedEvent));
             // In the CatchBlock the User see some Error Message and Restart after Clock on Button the TabActivity
         } catch (NullPointerException e) {
             restartApp(whichFragmentTag);
@@ -756,26 +695,6 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
     }
 
     /**
-     * This method checks which Repetition (none, daily, weekly, monthly, yearly) the event has.
-     *
-     * @return which Repetition the event has
-     */
-    private Repetition getEventRepetition() {
-        switch (eventRepetition) {
-            case "jährlich":
-                return Repetition.YEARLY;
-            case "monatlich":
-                return Repetition.MONTHLY;
-            case "wöchentlich":
-                return Repetition.WEEKLY;
-            case "täglich":
-                return Repetition.DAILY;
-            default:
-                return Repetition.NONE;
-        }
-    }
-
-    /**
      * This method decides if event can be saved, rejected or accepted
      */
     private void dialogListener() {
@@ -946,7 +865,7 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
         boolean test = getStartTimeEvent().before(now);
         Log.i("STARTZEIT", getStartTimeEvent().getTime().toString());
         Log.i("EVENTZEIT", now.getTime().toString());
-        if (getEventRepetition() == Repetition.NONE) {
+        if (invitedEvent.getRepetition() == Repetition.NONE) {
             if (getStartTimeEvent().getTime().before(now.getTime())) {
                 Toast.makeText(this, R.string.startTime_afterScanning_past, Toast.LENGTH_SHORT).show();
                 return true;

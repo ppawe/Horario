@@ -131,45 +131,10 @@ public class QRGeneratorFragment extends Fragment {
         return view;
     }
 
-    /**
-     * generates a StringBuffer with the information of the currently selected {@link Event} separated by " | " as its content
-     * @return the StringBuffer with the current event's information
-     */
-    @SuppressLint("SimpleDateFormat")
-    private StringBuffer stringBufferGenerator() {
-        //Modify the DateFormat form den DB to get a more readable Form for Date and Time disjunct
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
-        SimpleDateFormat simpleTimeFormat = new SimpleDateFormat("HH:mm");
-
-        //Splitting String Element is the Pipe Symbol (on the Keyboard ALT Gr + <> Button = |)
-        String stringSplitSymbol = " | ";
-
-        Person creatorId = mEvent.getCreator();
-
-        // Merge the Data Base Information to one Single StringBuffer with the Format:
-        // CreatorID (not EventID!!), StartDate, EndDate, StartTime, EndTime, Repetition, ShortTitle
-        // Place, Description, Name and PhoneNumber of EventCreator
-        mQRGenerator_StringBuffer_Result = new StringBuffer();
-        mQRGenerator_StringBuffer_Result.append(mEvent.getCreatorEventId()).append(stringSplitSymbol);
-        mQRGenerator_StringBuffer_Result.append(simpleDateFormat.format(mEvent.getStartTime())).append(stringSplitSymbol);
-        mQRGenerator_StringBuffer_Result.append(simpleDateFormat.format(mEvent.getEndDate())).append(stringSplitSymbol);
-        mQRGenerator_StringBuffer_Result.append(simpleTimeFormat.format(mEvent.getStartTime())).append(stringSplitSymbol);
-        mQRGenerator_StringBuffer_Result.append(simpleTimeFormat.format(mEvent.getEndTime())).append(stringSplitSymbol);
-        mQRGenerator_StringBuffer_Result.append(mEvent.getRepetition()).append(stringSplitSymbol);
-        mQRGenerator_StringBuffer_Result.append(mEvent.getShortTitle()).append(stringSplitSymbol);
-        mQRGenerator_StringBuffer_Result.append(mEvent.getPlace()).append(stringSplitSymbol);
-        mQRGenerator_StringBuffer_Result.append(mEvent.getDescription()).append(stringSplitSymbol);
-        mQRGenerator_StringBuffer_Result.append(mEvent.getCreator().getName()).append(stringSplitSymbol);
-        mQRGenerator_StringBuffer_Result.append(mEvent.getCreator().getPhoneNumber());
-
-        Log.d("louis", mQRGenerator_StringBuffer_Result.toString());
-        return mQRGenerator_StringBuffer_Result;
-
-    }
 
 
     /**
-     * generates a QR Code from the result of {@link #stringBufferGenerator()} for the selected {@link Event}
+     * generates a QR Code for the selected {@link Event}
      * and sets it as the value of an image view in the fragment
      */
     private void qrBitMapGenerator() {
@@ -181,7 +146,7 @@ public class QRGeneratorFragment extends Fragment {
         //Change the StringBuffer to a String for Output in the ImageView
         MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
         try {
-            mBitmatrix = multiFormatWriter.encode(String.valueOf(mQRGenerator_StringBuffer_Result),
+            mBitmatrix = multiFormatWriter.encode(EventController.createEventInvitation(mEvent),
                     BarcodeFormat.QR_CODE, 200, 200, correctionLevel);
             BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
             mBitmapOfQRCode = barcodeEncoder.createBitmap(mBitmatrix);
@@ -202,67 +167,15 @@ public class QRGeneratorFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull final View view, Bundle savedInstanceState) {
         try {
-            stringBufferGenerator();
             qrBitMapGenerator();
-
-            //Put StringBuffer in an Array and split the Values to new String Variables
-            //Index: 0 = CreatorID; 1 = StartDate; 2 = EndDate; 3 = StartTime; 4 = EndTime;
-            //       5 = Repetition; 6 = ShortTitle; 7 = Place; 8 = Description;  9 = EventCreatorName; 10 = PhoneNumber
-            String[] eventStringBufferArray = String.valueOf(stringBufferGenerator()).split("\\|");
-            String startDate = eventStringBufferArray[1].trim();
-            String endDate = eventStringBufferArray[2].trim();
-            String startTime = eventStringBufferArray[3].trim();
-            String endTime = eventStringBufferArray[4].trim();
-            String repetition = eventStringBufferArray[5].toUpperCase().trim();
-            String shortTitle = eventStringBufferArray[6].trim();
-            String place = eventStringBufferArray[7].trim();
-            String description = eventStringBufferArray[8].trim();
-            String eventCreatorName = eventStringBufferArray[9].trim();
-
-            // Change the DataBase Repetition Information in a German String for the Repetition Element
-            // like "Daily" into "täglich" and so on
-            switch (repetition) {
-                case "YEARLY":
-                    repetition = getString(R.string.yearly);
-                    break;
-                case "MONTHLY":
-                    repetition = getString(R.string.monthly);
-                    break;
-                case "WEEKLY":
-                    repetition = getString(R.string.weekly);
-                    break;
-                case "DAILY":
-                    repetition = getString(R.string.daily);
-                    break;
-                case "NONE":
-                    repetition = "";
-                    break;
-                default:
-                    repetition = getString(R.string.without_repetition);
-            }
-
-            // Check the EventCreatorName and is it itself Change the eventCreatorName to "Your Self"
-            if (mEvent.getCreator() == PersonController.getPersonWhoIam()) {
-                eventCreatorName = getString(R.string.yourself);
-            }
-
             // Event shortTitle in Headline with StartDate
-            String concat = shortTitle + ", " + startDate;
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+            String concat = mEvent.getShortTitle() + ", " + dateFormat.format(mEvent.getStartTime());
             mQRGenerator_textView_headline.setText(concat);
             // Check for a Repetition Event and Change the Description Output with and without
             // Repetition Element inside.
-            if (repetition.equals("")) {
-                concat = getString(R.string.time) + startTime + getString(R.string.until)
-                        + endTime + getString(R.string.clock) + "\n" + getString(R.string.place) + place + "\n" + getString(R.string.organizer) + eventCreatorName + "\n" + "\n" + getString(R.string.eventDetails)
-                        + description;
-                mQRGenerator_textView_description.setText(concat);
-            } else {
-                concat = getString(R.string.as_of) + startDate
-                        + getString(R.string.until) + endDate + "\n" + getString(R.string.time) + startTime + getString(R.string.until)
-                        + endTime + getString(R.string.clock) + "\n" + getString(R.string.place) + place + "\n" + getString(R.string.organizer) + eventCreatorName + "\n" + "\n" + getString(R.string.eventDetails)
-                        + description;
-                mQRGenerator_textView_description.setText(concat);
-            }
+            mQRGenerator_textView_description.setText(EventController.createEventDescription(mEvent));
+
             // In the CatchBlock the User see a SnackBar Information and was pushed where the User Comes From
         } catch (NullPointerException e) {
             Log.d(TAG, "QRGeneratorFragmentActivity:" + e.getMessage());
@@ -284,9 +197,6 @@ public class QRGeneratorFragment extends Fragment {
             mQRGenerator_textView_headline.setVisibility(View.GONE);
             mQRGenerator_button_shareWith.setVisibility(View.GONE);
             mQRGenerator_button_goToWhereComesFrom.setVisibility(View.GONE);
-            String concat = getString(R.string.wrongQRCodeResult) + "\n" + "\n"
-                    + mQRGenerator_StringBuffer_Result + "\n" + "\n" + getString(R.string.notAsEventSaveable);
-            mQRGenerator_textView_description.setText(concat);
 
             Snackbar.make(Objects.requireNonNull(getActivity()).findViewById(R.id.qrGenerator_relativeLayout_textViewFrame),
                     getString(R.string.ups_an_error),

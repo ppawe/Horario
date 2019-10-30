@@ -42,6 +42,7 @@ import hft.wiinf.de.horario.controller.PersonController;
 import hft.wiinf.de.horario.controller.SendSmsController;
 import hft.wiinf.de.horario.model.AcceptedState;
 import hft.wiinf.de.horario.model.Event;
+import hft.wiinf.de.horario.model.Person;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
@@ -191,7 +192,7 @@ public class EventRejectEventFragment extends Fragment {
                             //delete alarm for notification
                             NotificationController.deleteAlarmNotification(getContext(), event);
                             rejectMessage = spinner_reason.getSelectedItem().toString() + "!" + reason_for_rejection.getText().toString();
-                            new SendSmsController().sendSMS(getContext(), phNumber, rejectMessage, false, creatorEventId, shortTitle);
+                            new SendSmsController().sendSMS(getContext(), event.getCreator().getPhoneNumber(), rejectMessage, false, creatorEventId, event.getShortTitle());
                             Toast.makeText(getContext(), R.string.reject_event_hint, Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(getContext(), "Um einen Termin abzusagen benötigen wir die Berechtigung SMS zu senden", Toast.LENGTH_LONG).show();
@@ -229,103 +230,21 @@ public class EventRejectEventFragment extends Fragment {
     }
 
     /**
-     * This method formats the StringBuffer received from stringBufferGenerator() into a
-     * String detailing the information about the chosen {@link Event}
-     *
+     * Sets the Event's description
      * @param selectedEvent: the event the user selected for rejection
      */
     private void buildDescriptionEvent(Event selectedEvent) {
-        //Put StringBuffer in an Array and split the Values to new String Variables
-        //Index: 0 = CreatorID; 1 = StartDate; 2 = EndDate; 3 = StartTime; 4 = EndTime;
-        //       5 = Repetition; 6 = ShortTitle; 7 = Place; 8 = Description;  9 = EventCreatorName
-        String[] eventStringBufferArray = String.valueOf(stringBufferGenerator()).split("\\|");
-        String startDate = eventStringBufferArray[1].trim();
-        String endDate = eventStringBufferArray[2].trim();
-        String startTime = eventStringBufferArray[3].trim();
-        String endTime = eventStringBufferArray[4].trim();
-        String repetition = eventStringBufferArray[5].toUpperCase().trim();
-        shortTitle = eventStringBufferArray[6].trim();
-        String place = eventStringBufferArray[7].trim();
-        String description = eventStringBufferArray[8].trim();
-        String eventCreatorName = eventStringBufferArray[9].trim();
-        phNumber = selectedEvent.getCreator().getPhoneNumber();
-
-        // Change the DataBase Repetition Information in a German String for the Repetition Element
-        // like "Daily" into "täglich" and so on
-        switch (repetition) {
-            case "YEARLY":
-                repetition = "jährlich";
-                break;
-            case "MONTHLY":
-                repetition = "monatlich";
-                break;
-            case "WEEKLY":
-                repetition = "wöchentlich";
-                break;
-            case "DAILY":
-                repetition = "täglich";
-                break;
-            case "NONE":
-                repetition = "";
-                break;
-            default:
-                repetition = "ohne Wiederholung";
-        }
-
-        // Event shortTitel in Headline with StartDate
-        String concat = eventCreatorName + "\n" + shortTitle + ", " + startDate;
-        reject_event_header.setText(concat);
+        Person creator = selectedEvent.getCreator();
+        String text = creator.getName() + " ("+ creator.getPhoneNumber() + ")\n" + selectedEvent.getShortTitle();
+        reject_event_header.setText(text);
         // Check for a Repetition Event and Change the Description Output with and without
         // Repetition Element inside.
-        if (repetition.equals("")) {
-            concat = "Am " + startDate + " findet von " + startTime + " bis "
-                    + endTime + " Uhr in Raum " + place + " " + shortTitle + " statt." + "\n" + "Termindetails sind: "
-                    + description;
-            reject_event_description.setText(concat);
-        } else {
-            concat = "Vom " + startDate + " bis " + endDate +
-                    " findet " + repetition + " um " + startTime + "Uhr bis " + endTime + "Uhr in Raum "
-                    + place + " " + shortTitle + " statt." + "\n" + "Termindetails sind: " + description;
-            reject_event_description.setText(concat);
-        }
-    }
-
-    /**
-     * generates a StringBuffer with the information of the currently selected {@link Event} separated by " | " as its content
-     * @return the StringBuffer with the current event's information
-     */
-    private StringBuffer stringBufferGenerator() {
-
-        //Modify the Dateformat form den DB to get a more readable Form for Date and Time disjunct
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
-        SimpleDateFormat simpleTimeFormat = new SimpleDateFormat("HH:mm");
-
-        //Splitting String Element is the Pipe Symbol (on the Keyboard ALT Gr + <> Button = |)
-        String stringSplitSymbol = " | "; //
-
-        // Merge the Data Base Information to one Single StringBuffer with the Format:
-        // CreatorID (not EventID!!), StartDate, EndDate, StartTime, EndTime, Repetition, ShortTitle
-        // Place, Description and Name of EventCreator
-        eventToStringBuffer = new StringBuffer();
-        eventToStringBuffer.append(selectedEvent.getId() + stringSplitSymbol);
-        eventToStringBuffer.append(simpleDateFormat.format(selectedEvent.getStartTime()) + stringSplitSymbol);
-        eventToStringBuffer.append(simpleDateFormat.format(selectedEvent.getEndDate()) + stringSplitSymbol);
-        eventToStringBuffer.append(simpleTimeFormat.format(selectedEvent.getStartTime()) + stringSplitSymbol);
-        eventToStringBuffer.append(simpleTimeFormat.format(selectedEvent.getEndTime()) + stringSplitSymbol);
-        eventToStringBuffer.append(selectedEvent.getRepetition() + stringSplitSymbol);
-        eventToStringBuffer.append(selectedEvent.getShortTitle() + stringSplitSymbol);
-        eventToStringBuffer.append(selectedEvent.getPlace() + stringSplitSymbol);
-        eventToStringBuffer.append(selectedEvent.getDescription() + stringSplitSymbol);
-        eventToStringBuffer.append(selectedEvent.getCreator().getName());
-
-        return eventToStringBuffer;
-
+        reject_event_description.setText(EventController.createEventDescription(selectedEvent));
     }
 
     /**
      * This method checks if user input is valid. If input is not valid show Toast
-     * @return false: if input is not valid
-     * @return true: if input is valid
+     * @return false: if input is not valid; true: if input is valid
      */
     private boolean checkForInput() {
         if (reason_for_rejection.getText().length() == 0) {

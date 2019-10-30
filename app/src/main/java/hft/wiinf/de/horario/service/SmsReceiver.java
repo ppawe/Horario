@@ -129,6 +129,8 @@ public class SmsReceiver extends BroadcastReceiver {
                                     newInvitationString.getEndDateAsDate().after(newInvitationString.getDateReceived())) {
                                 if (!InvitationController.eventAlreadySaved(newInvitationString)) {
                                     Event invitedEvent = EventController.createInvitedEventFromInvitation(newInvitationString);
+                                    Person creator = PersonController.addOrGetPerson(newInvitationString.getCreatorPhoneNumber(), newInvitationString.getCreatorName());
+                                    creator.setName(newInvitationString.getCreatorName());
                                     NotificationController.sendInvitationNotification(context, newInvitationString, invitedEvent);
                                 }
                             }
@@ -157,6 +159,8 @@ public class SmsReceiver extends BroadcastReceiver {
                                     newInvitationString.getEndDateAsDate().after(newInvitationString.getDateReceived())) {
                                 if (!InvitationController.eventAlreadySaved(newInvitationString)) {
                                     Event invitedEvent = EventController.createInvitedEventFromInvitation(newInvitationString);
+                                    Person creator = PersonController.addOrGetPerson(newInvitationString.getCreatorPhoneNumber(), newInvitationString.getCreatorName());
+                                    creator.setName(newInvitationString.getCreatorName());
                                     NotificationController.sendInvitationNotification(context, newInvitationString, invitedEvent);
                                 }
                             }
@@ -188,7 +192,7 @@ public class SmsReceiver extends BroadcastReceiver {
         }
         message = message.replaceAll(":HorarioInvitation:", "");
         String[] splitMessage = message.split(" \\| ");
-        if (splitMessage.length == 11) {
+        if (splitMessage.length == 12) {
             //check if id is valid
             if (!splitMessage[0].matches("^[^0\\D]\\d*$")) {
                 Log.d("invalidInvitation", splitMessage[0]);
@@ -217,23 +221,27 @@ public class SmsReceiver extends BroadcastReceiver {
                 Log.d("invalidInvitation", splitMessage[5]);
                 return false;
             }
-            if (!splitMessage[6].matches("^[^\\s|][^|]*$")) {
-                Log.d("invalidInvitation", splitMessage[6]);
+            if (!splitMessage[6].matches("^(?:(?:31(\\.)(?:0?[13578]|1[02]))\\1|(?:(?:29|30)(\\.)(?:0?[1,3-9]|1[0-2])\\2))(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$|^(?:29(\\.)0?2\\3(?:(?:(?:1[6-9]|[2-9]\\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\\d|2[0-8])(\\.)(?:(?:0?[1-9])|(?:1[0-2]))\\4(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$")) {
+                Log.d("invalidInvitation", splitMessage[2]);
                 return false;
             }
             if (!splitMessage[7].matches("^[^\\s|][^|]*$")) {
-                Log.d("invalidInvitation", splitMessage[7]);
+                Log.d("invalidInvitation", splitMessage[6]);
                 return false;
             }
             if (!splitMessage[8].matches("^[^\\s|][^|]*$")) {
-                Log.d("invalidInvitation", splitMessage[8]);
+                Log.d("invalidInvitation", splitMessage[7]);
                 return false;
             }
             if (!splitMessage[9].matches("^[^\\s|][^|]*$")) {
+                Log.d("invalidInvitation", splitMessage[8]);
+                return false;
+            }
+            if (!splitMessage[10].matches("^[^\\s|][^|]*$")) {
                 Log.d("invalidInvitation", splitMessage[9]);
                 return false;
             }
-            if (!splitMessage[10].matches("^\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$")) {
+            if (!splitMessage[11].matches("^\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$")) {
                 Log.d("invalidInvitation", splitMessage[10]);
                 return false;
             }

@@ -25,23 +25,21 @@
     <show-object-properties value="true" />
     <loaded-nodes>
       <connection connection-id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77">
-        <schema name="main" object-types="column, index, view, table, dataset trigger, constraint" />
+        <schema name="main" object-types="index, column, table, constraint, view, dataset trigger" />
       </connection>
     </loaded-nodes>
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77">
-      <console name="Connection" type="STANDARD" schema="main" session="Main" />
+      <console name="Connection" type="STANDARD" schema="" session="Main" />
     </connection>
     <connection id="3439748a-604c-4273-9fd9-6279c6cdb1c0">
-      <console name="Connection 1" type="STANDARD" schema="main" session="Main" />
+      <console name="Connection 1" type="STANDARD" schema="" session="Main" />
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
     <open-files>
       <object connection-id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77" object-ref="schemas/main/tables/events" />
-      <object connection-id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77" object-ref="schemas/main/tables/persons" />
-      <object connection-id="9b9256ad-f8f7-4896-8b90-73dc2ce5ac77" object-ref="schemas/main/tables/eventperson" />
     </open-files>
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
@@ -94,7 +92,7 @@
           <port value="1234" />
           <database value="database" />
           <files>
-            <file path="$USER_HOME$/AndroidStudio/DeviceExplorer/Pixel_3a_API_29_test [emulator-5554]/data/data/hft.wiinf.de.horario/databases/horario.db" schema="main" />
+            <file path="$USER_HOME$/AndroidStudio/DeviceExplorer/Pixel_3a_API_29 [emulator-5554]/data/data/hft.wiinf.de.horario/databases/horario.db" schema="main" />
           </files>
           <type value="NONE" />
           <user value="" />

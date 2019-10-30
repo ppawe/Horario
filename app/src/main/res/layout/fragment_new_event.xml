@@ -39,6 +39,25 @@
             android:focusableInTouchMode="true"
             android:paddingBottom="60dp">
 
+            <EditText
+                android:id="@+id/newEvent_textEdit_shortTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/newEvent_textEdit_shortTitle"
+                android:layout_alignParentEnd="true"
+                android:ems="8"
+                android:inputType="text"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/newEvent_textView_shortTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/newEvent_textEdit_shortTitle"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="10dp"
+                android:text="@string/event_shortTitle"
+                android:textSize="16sp" />
 
             <EditText
                 android:id="@+id/newEvent_editText_description"
@@ -61,6 +80,26 @@
                 android:text="@string/event_Description"
                 android:textSize="16sp" />
 
+            <TextView
+                android:id="@+id/newEvent_textView_room"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/newEvent_textEdit_room"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="10dp"
+                android:text="@string/event_room"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/newEvent_textEdit_room"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_below="@+id/newEvent_editText_description"
+                android:ems="8"
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/newEvent_textView_Date"
@@ -72,7 +111,6 @@
                 android:text="@string/event_date"
                 android:textSize="16sp" />
 
-
             <EditText
                 android:id="@+id/newEvent_editText_Date"
                 android:layout_width="wrap_content"
@@ -82,6 +120,24 @@
                 android:ems="8"
                 android:textSize="16sp" />
 
+            <TextView
+                android:id="@+id/newEvent_textView_endDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/newEvent_editText_endDate"
+                android:layout_alignParentStart="true"
+                android:layout_marginLeft="10dp"
+                android:text="@string/endDatum"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/newEvent_editText_endDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_below="@+id/newEvent_editText_Date"
+                android:ems="8"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/newEvent_textView_startTime"
@@ -93,17 +149,15 @@
                 android:text="@string/event_startTime"
                 android:textSize="16sp" />
 
-
             <EditText
                 android:id="@+id/newEvent_editText_startTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_below="@+id/newEvent_editText_Date"
+                android:layout_below="@+id/newEvent_editText_endDate"
                 android:ems="8"
                 android:focusable="true"
                 android:textSize="16sp" />
-
 
             <TextView
                 android:id="@+id/newEvent_textView_endTime"
@@ -117,7 +171,6 @@
                 android:text="@string/event_endtime"
                 android:textSize="16sp" />
 
-
             <EditText
                 android:id="@+id/newEvent_textEdit_endTime"
                 android:layout_width="wrap_content"
@@ -128,17 +181,35 @@
                 android:focusable="true"
                 android:textSize="16sp" />
 
+            <TextView
+                android:id="@+id/newEvent_textView_userName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/newEvent_textEdit_userName"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="10dp"
+                android:text="@string/username_text"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/newEvent_textEdit_userName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_below="@+id/newEvent_textEdit_endTime"
+                android:ems="8"
+                android:inputType="text"
+                android:textSize="16sp" />
 
             <CheckBox
                 android:id="@+id/newEvent_checkBox_SerialEvent"
                 android:layout_width="wrap_content"
                 android:layout_height="73dp"
                 android:layout_alignParentStart="true"
-                android:layout_below="@id/newEvent_textVire_userName"
+                android:layout_below="@id/newEvent_textView_userName"
                 android:checked="false"
                 android:text="@string/event_serialEvent"
                 android:textSize="16sp" />
-
 
             <Spinner
                 android:id="@+id/newEvent_spinner_repetition"
@@ -148,7 +219,6 @@
                 android:layout_alignParentEnd="true"
                 android:entries="@array/event_repetitions"
                 android:visibility="gone" />
-
 
             <TextView
                 android:id="@+id/newEvent_textView_endOfRepetiton"
@@ -161,7 +231,6 @@
                 android:textSize="16sp"
                 android:visibility="gone" />
 
-
             <EditText
                 android:id="@+id/newEvent_textEdit_endOfRepetition"
                 android:layout_width="wrap_content"
@@ -173,69 +242,6 @@
                 android:focusableInTouchMode="true"
                 android:textSize="16sp"
                 android:visibility="gone" />
-
-
-            <TextView
-                android:id="@+id/newEvent_textView_room"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignBaseline="@+id/newEvent_textEdit_room"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="10dp"
-                android:text="@string/event_room"
-                android:textSize="16sp" />
-
-
-            <EditText
-                android:id="@+id/newEvent_textEdit_room"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_below="@+id/newEvent_editText_description"
-                android:ems="8"
-                android:imeOptions="actionDone"
-                android:inputType="text"
-                android:textSize="16sp" />
-
-            <EditText
-                android:id="@+id/newEvent_textEdit_shortTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignBaseline="@id/newEvent_textEdit_shortTitle"
-                android:layout_alignParentEnd="true"
-                android:ems="8"
-                android:inputType="text"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/newEvent_textView_shortTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignBaseline="@+id/newEvent_textEdit_shortTitle"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="10dp"
-                android:text="@string/event_shortTitle"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/newEvent_textVire_userName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignBaseline="@+id/unewEvent_textEdit_userName"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="10dp"
-                android:text="@string/username_text"
-                android:textSize="16sp" />
-
-            <EditText
-                android:id="@+id/unewEvent_textEdit_userName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_below="@+id/newEvent_textEdit_endTime"
-                android:ems="8"
-                android:inputType="text"
-                android:textSize="16sp" />
 
         </RelativeLayout>
     </ScrollView>

@@ -53,24 +53,10 @@ public class SendSmsController extends BroadcastReceiver {
     public void sendInvitationSMS(Context context, Event event, String sms_recipient_no) {
         mEvent = event;
         cont = context;
-        String stringSplitSymbol = " | ";
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
-        SimpleDateFormat simpleTimeFormat = new SimpleDateFormat("HH:mm");
         StringBuffer messageStringBuffer = new StringBuffer();
         messageStringBuffer.append(":HorarioInvitation:");
-        messageStringBuffer.append(mEvent.getCreatorEventId()).append(stringSplitSymbol);
-        messageStringBuffer.append(simpleDateFormat.format(mEvent.getStartTime())).append(stringSplitSymbol);
-        messageStringBuffer.append(simpleDateFormat.format(mEvent.getEndDate())).append(stringSplitSymbol);
-        messageStringBuffer.append(simpleTimeFormat.format(mEvent.getStartTime())).append(stringSplitSymbol);
-        messageStringBuffer.append(simpleTimeFormat.format(mEvent.getEndTime())).append(stringSplitSymbol);
-        messageStringBuffer.append(mEvent.getRepetition()).append(stringSplitSymbol);
-        messageStringBuffer.append(mEvent.getShortTitle()).append(stringSplitSymbol);
-        messageStringBuffer.append(mEvent.getPlace()).append(stringSplitSymbol);
-        messageStringBuffer.append(mEvent.getDescription()).append(stringSplitSymbol);
-        messageStringBuffer.append(mEvent.getCreator().getName()).append(stringSplitSymbol);
-        messageStringBuffer.append(mEvent.getCreator().getPhoneNumber());
+        messageStringBuffer.append(EventController.createEventInvitation(mEvent));
         messageStringBuffer.append(":HorarioInvitation:");
-
         String message = messageStringBuffer.toString();
         Log.d("louis", message);
 
@@ -89,7 +75,6 @@ public class SendSmsController extends BroadcastReceiver {
         } catch (Exception e) {
             Log.d("louis", e.getMessage());
         }
-
     }
 
     /**

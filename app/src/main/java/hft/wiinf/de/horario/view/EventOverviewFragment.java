@@ -85,6 +85,7 @@ public class EventOverviewFragment extends Fragment {
         final ArrayList<Appointment> appointmentArray = new ArrayList<>();
         List<Event> allEvents = EventController.getAllEvents();
 
+
         Calendar helper = Calendar.getInstance();
         helper.setTime(date);
         helper.set(Calendar.DAY_OF_MONTH, 1);
@@ -103,7 +104,10 @@ public class EventOverviewFragment extends Fragment {
 
             eventList.clear();
             for (Event event : allEvents) {
-                if (event.getEndTime().after(helper.getTime()) && event.getEndTime().before(endOfDay.getTime())) {
+                //Events that take place between helper and endOfDay date are added to the list of events
+                if (event.getEndTime().after(helper.getTime()) && event.getEndTime().before(endOfDay.getTime()) ||
+                   (event.getStartTime().after(helper.getTime())  || event.getStartTime().equals(helper.getTime())) && event.getStartTime().before(endOfDay.getTime()) ||
+                   event.getStartTime().before(helper.getTime()) && event.getEndTime().after(endOfDay.getTime())) {
                     eventList.add(event);
                 }
             }
@@ -111,15 +115,26 @@ public class EventOverviewFragment extends Fragment {
             if (eventList.size() > 0) {
                 appointmentArrayDay.add(new Appointment(CalendarFragment.dayFormat.format(helper.getTime()), 0));
             }
-            for (int i = 0; i < eventList.size(); i++) {
-                if (eventList.get(i).getCreator().equals(PersonController.getPersonWhoIam())) {
-                    appointmentArrayDay.add(new Appointment(timeFormat.format(eventList.get(i).getStartTime()) + " - " + timeFormat.format(eventList.get(i).getEndTime()) + " " + eventList.get(i).getShortTitle(), 3, eventList.get(i).getId(), eventList.get(i).getCreator()));
+            String description;
+            Calendar start = Calendar.getInstance();
+            Calendar end = Calendar.getInstance();
+            for (Event event : eventList) {
+                start.setTime(event.getStartTime());
+                end.setTime(event.getEndTime());
+                if(start.get(Calendar.DAY_OF_YEAR) == end.get(Calendar.DAY_OF_YEAR) && start.get(Calendar.YEAR) == end.get(Calendar.YEAR)) {
+                    description = timeFormat.format(event.getStartTime()) + " - " + timeFormat.format(event.getEndTime()) + " " + event.getShortTitle();
+                }else{
+                    DateFormat dayFormat = new SimpleDateFormat("dd.MM.yy HH:mm");
+                    description = dayFormat.format(event.getStartTime()) + " - " + dayFormat.format(event.getEndTime()) + " " + event.getShortTitle();
+                }
+                if (event.getCreator().equals(PersonController.getPersonWhoIam())) {
+                    appointmentArrayDay.add(new Appointment(description, 3, event.getId(), event.getCreator()));
                 } else {
                     Person me = PersonController.getPersonWhoIam();
-                    if (EventPersonController.getEventPerson(eventList.get(i), me).getStatus() == AcceptedState.ACCEPTED) {
-                        appointmentArrayDay.add(new Appointment(timeFormat.format(eventList.get(i).getStartTime()) + " - " + timeFormat.format(eventList.get(i).getEndTime()) + " " + eventList.get(i).getShortTitle(), 1, eventList.get(i).getId(), eventList.get(i).getCreator()));
-                    } else if (EventPersonController.getEventPerson(eventList.get(i), me).getStatus() == AcceptedState.WAITING) {
-                        appointmentArrayDay.add(new Appointment(timeFormat.format(eventList.get(i).getStartTime()) + " - " + timeFormat.format(eventList.get(i).getEndTime()) + " " + eventList.get(i).getShortTitle(), 2, eventList.get(i).getId(), eventList.get(i).getCreator()));
+                    if (EventPersonController.getEventPerson(event, me).getStatus() == AcceptedState.ACCEPTED) {
+                        appointmentArrayDay.add(new Appointment(description, 1, event.getId(), event.getCreator()));
+                    } else if (EventPersonController.getEventPerson(event, me).getStatus() == AcceptedState.WAITING) {
+                        appointmentArrayDay.add(new Appointment(description, 2, event.getId(), event.getCreator()));
                     }
                 }
             }

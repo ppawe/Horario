@@ -18,12 +18,24 @@
                                 <PersistentState>
                                   <option name="children">
                                     <map>
+                                      <entry key="clipArt">
+                                        <value>
+                                          <PersistentState>
+                                            <option name="values">
+                                              <map>
+                                                <entry key="color" value="000000" />
+                                                <entry key="opacityPercent" value="80" />
+                                              </map>
+                                            </option>
+                                          </PersistentState>
+                                        </value>
+                                      </entry>
                                       <entry key="clipartAsset">
                                         <value>
                                           <PersistentState>
                                             <option name="values">
                                               <map>
-                                                <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/navigation/ic_close_black_24dp.xml" />
+                                                <entry key="url" value="jar:file:/opt/jetbrains/apps/AndroidStudio/ch-0/191.5791312/plugins/android/lib/android.jar!/images/material_design_icons/action/ic_delete_black_24dp.xml" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -45,7 +57,7 @@
                                   </option>
                                   <option name="values">
                                     <map>
-                                      <entry key="outputName" value="ic_mydate_rejected_white" />
+                                      <entry key="outputName" value="ic_delete" />
                                       <entry key="theme" value="CUSTOM" />
                                       <entry key="themeColor" value="ffffff" />
                                     </map>
@@ -69,15 +81,23 @@
                                           </PersistentState>
                                         </value>
                                       </entry>
+                                      <entry key="foregroundImage">
+                                        <value>
+                                          <PersistentState>
+                                            <option name="values">
+                                              <map>
+                                                <entry key="color" value="000000" />
+                                              </map>
+                                            </option>
+                                          </PersistentState>
+                                        </value>
+                                      </entry>
                                     </map>
                                   </option>
                                   <option name="values">
                                     <map>
                                       <entry key="backgroundAssetType" value="COLOR" />
-                                      <entry key="backgroundColor" value="f5f9db" />
-                                      <entry key="backgroundLayerName" value="ic_launcher_background" />
                                       <entry key="foregroundAssetType" value="CLIP_ART" />
-                                      <entry key="foregroundLayerName" value="ic_gavel_black" />
                                       <entry key="outputName" value="ic_android_gavel_black" />
                                     </map>
                                   </option>
@@ -101,24 +121,13 @@
                                           </PersistentState>
                                         </value>
                                       </entry>
-                                      <entry key="clipartAsset">
-                                        <value>
-                                          <PersistentState>
-                                            <option name="values">
-                                              <map>
-                                                <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/navigation/ic_close_black_24dp.xml" />
-                                              </map>
-                                            </option>
-                                          </PersistentState>
-                                        </value>
-                                      </entry>
                                     </map>
                                   </option>
                                   <option name="values">
                                     <map>
                                       <entry key="backgroundColor" value="f5f9db" />
                                       <entry key="iconShape" value="NONE" />
-                                      <entry key="imageAsset" value="C:\Users\Christine\Documents\HKalender.png" />
+                                      <entry key="imageAsset" value="$USER_HOME$/C:\Users\Christine\Documents\HKalender.png" />
                                       <entry key="outputName" value="ic_mydate_rejected_white" />
                                     </map>
                                   </option>
@@ -128,10 +137,36 @@
                             <entry key="notification">
                               <value>
                                 <PersistentState>
+                                  <option name="children">
+                                    <map>
+                                      <entry key="clipArt">
+                                        <value>
+                                          <PersistentState>
+                                            <option name="values">
+                                              <map>
+                                                <entry key="color" value="000000" />
+                                              </map>
+                                            </option>
+                                          </PersistentState>
+                                        </value>
+                                      </entry>
+                                      <entry key="image">
+                                        <value>
+                                          <PersistentState>
+                                            <option name="values">
+                                              <map>
+                                                <entry key="color" value="000000" />
+                                              </map>
+                                            </option>
+                                          </PersistentState>
+                                        </value>
+                                      </entry>
+                                    </map>
+                                  </option>
                                   <option name="values">
                                     <map>
                                       <entry key="assetType" value="IMAGE" />
-                                      <entry key="imageAsset" value="C:\Users\Christine\Documents\HHHH.png" />
+                                      <entry key="imageAsset" value="$USER_HOME$/C:\Users\Christine\Documents\HHHH.png" />
                                       <entry key="outputName" value="ic_notification" />
                                     </map>
                                   </option>
@@ -168,7 +203,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/C:/Program%20Files%20(x86)/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/image/ic_center_focus_strong_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/opt/jetbrains/apps/AndroidStudio/ch-0/191.5791312/plugins/android/lib/android.jar!/images/material_design_icons/action/ic_delete_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -178,10 +213,10 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="fefff2" />
-                            <entry key="outputName" value="ic_qr" />
-                            <entry key="overrideSize" value="true" />
-                            <entry key="sourceFile" value="C:\Users\Christine" />
+                            <entry key="color" value="fcfdfb" />
+                            <entry key="opacityPercent" value="80" />
+                            <entry key="outputName" value="ic_delete_48dp" />
+                            <entry key="sourceFile" value="$USER_HOME$/C:\Users\Christine" />
                           </map>
                         </option>
                       </PersistentState>
