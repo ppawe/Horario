@@ -250,4 +250,6 @@
     <string name="no_new_invitations">Keine neuen Einladungen</string>
     <string name="endDatum">Enddatum</string>
     <string name="delete_event">TERMIN LÖSCHEN</string>
+    <string name="einladen_per_sms">Einladen per SMS</string>
+    <string name="einladen_per_nfc">Einladen per NFC</string>
 </resources>

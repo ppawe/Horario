@@ -84,7 +84,7 @@ public class AcceptedEventDetailsFragment extends Fragment {
         Calendar now = Calendar.getInstance();
         if(now.getTime().after(selectedEvent.getStartTime()) && selectedEvent.getRepetition() == Repetition.NONE
                 || now.getTime().after(selectedEvent.getEndRepetitionDate()) && selectedEvent.getRepetition() != Repetition.NONE){
-            Drawable delete = ContextCompat.getDrawable(getContext(),R.drawable.ic_delete_48dp);
+            Drawable delete = ContextCompat.getDrawable(getContext(),R.drawable.ic_delete_black_24dp);
             acceptedEventDetailsButtonRefuseAppointment.setCompoundDrawablesWithIntrinsicBounds(null,null, delete,null);
             acceptedEventDetailsButtonRefuseAppointment.setText(R.string.delete_event);
             acceptedEventDetailsButtonRefuseAppointment.setOnClickListener(new View.OnClickListener() {

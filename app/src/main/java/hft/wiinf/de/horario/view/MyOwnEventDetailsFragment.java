@@ -4,9 +4,12 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.nfc.NfcAdapter;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -30,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import hft.wiinf.de.horario.NFCActivity;
 import hft.wiinf.de.horario.R;
 import hft.wiinf.de.horario.controller.EventController;
 import hft.wiinf.de.horario.controller.EventPersonController;
@@ -46,6 +50,7 @@ import hft.wiinf.de.horario.model.Repetition;
  */
 public class MyOwnEventDetailsFragment extends Fragment {
 
+    public final static int NFC_REQUEST = 0;
     Event event;
     private Button myOwnEventDetailsButtonShowQR;
     private Button myOwnEventDetailsButtonShowAcceptances;
@@ -58,6 +63,7 @@ public class MyOwnEventDetailsFragment extends Fragment {
     private StringBuffer eventToStringBuffer;
     private Activity activity;
     private String sendToNumber = null;
+
 
     public MyOwnEventDetailsFragment() {
         // Required empty public constructor
@@ -106,7 +112,7 @@ public class MyOwnEventDetailsFragment extends Fragment {
         Calendar now = Calendar.getInstance();
         if(now.getTime().after(selectedEvent.getStartTime()) && selectedEvent.getRepetition() == Repetition.NONE
                 || now.getTime().after(selectedEvent.getEndRepetitionDate()) && selectedEvent.getRepetition() != Repetition.NONE){
-            Drawable delete = ContextCompat.getDrawable(getContext(),R.drawable.ic_delete_48dp);
+            Drawable delete = ContextCompat.getDrawable(getContext(),R.drawable.ic_delete_black_24dp);
             myOwnEventDetailsButtonSendInvite.setCompoundDrawablesWithIntrinsicBounds(null,null, delete,null);
             myOwnEventDetailsButtonSendInvite.setText(R.string.delete_event);
             myOwnEventDetailsButtonSendInvite.setOnClickListener(new View.OnClickListener() {
@@ -143,52 +149,8 @@ public class MyOwnEventDetailsFragment extends Fragment {
 
                     //checks if the event's startTime is in the future
                     if (selectedEvent.getStartTime().after(new Date())) {
-                        //opens input dialog for phone number
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                        builder.setView(R.layout.dialog_askingforphonenumber);
-                        builder.setCancelable(true);
-                        final AlertDialog dialog = builder.create();
-                        dialog.show();
-                        TextView text = dialog.findViewById(R.id.dialog_textView_telephoneNumber);
-                        text.setText(R.string.enter_recipient_number);
-                        EditText numberView = dialog.findViewById(R.id.dialog_EditText_telephonNumber);
-                        numberView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                            @Override
-                            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-                                String inputText = textView.getText().toString().replaceAll("\\s", "");
-                                //this regex checks valid country codes
-                                if (actionId == EditorInfo.IME_ACTION_DONE && inputText.matches("\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$") || inputText.matches("(\\(555\\)521-5554|\\(555\\)521-5556)")) {
-                                    sendToNumber = inputText;
-                                    dialog.dismiss();
-                                    if (ContextCompat.checkSelfPermission(activity, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-                                        requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 2);
-                                    }
-                                    //check if the number has already been invited or accepted the invitation
-                                    if (ContextCompat.checkSelfPermission(activity, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED &&
-                                            getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
-                                        List<Person> participants = EventPersonController.getEventParticipants(selectedEvent);
-                                        boolean alreadyInvited = false;
-                                        for (Person participant : participants) {
-                                            if (participant.getPhoneNumber().equals(sendToNumber)) {
-                                                alreadyInvited = true;
-                                            }
-                                        }
-                                        if (alreadyInvited || PersonController.getPersonViaPhoneNumber(sendToNumber) != null &&
-                                                EventPersonController.personIsInvitedToEvent(selectedEvent, PersonController.getPersonViaPhoneNumber(sendToNumber))) {
-                                            Toast.makeText(getContext(), "Person nimmt bereits teil oder wurde bereits eingeladen.", Toast.LENGTH_SHORT).show();
-                                            dialog.cancel();
-                                        } else {
-                                            //send the invitation
-                                            new SendSmsController().sendInvitationSMS(getContext(), selectedEvent, sendToNumber);
-                                        }
-                                    } else {
-                                        Toast.makeText(getContext(), R.string.sending_sms_impossible, Toast.LENGTH_SHORT).show();
-                                        Log.d("louis", getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY) ? "true" : "false");
-                                    }
-                                }
-                                return false;
-                            }
-                        });
+                        //opens dialog with invitation options
+                        showOptionsDialog();
                     } else {
                         Toast.makeText(getContext(), R.string.event_is_in_past, Toast.LENGTH_SHORT).show();
                     }
@@ -248,6 +210,71 @@ public class MyOwnEventDetailsFragment extends Fragment {
         return view;
     }
 
+    public void showOptionsDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setView(R.layout.dialog_invitation_options);
+        builder.setCancelable(true);
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.findViewById(R.id.invitation_sms).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setView(R.layout.dialog_askingforphonenumber);
+                builder.setCancelable(true);
+                final AlertDialog dialog = builder.create();
+                dialog.show();
+                TextView text = dialog.findViewById(R.id.dialog_textView_telephoneNumber);
+                text.setText(R.string.enter_recipient_number);
+                EditText numberView = dialog.findViewById(R.id.dialog_EditText_telephonNumber);
+                numberView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                    @Override
+                    public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+                        String inputText = textView.getText().toString().replaceAll("\\s", "");
+                        //this regex checks valid country codes
+                        if (actionId == EditorInfo.IME_ACTION_DONE && inputText.matches("\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$") || inputText.matches("(\\(555\\)521-5554|\\(555\\)521-5556)")) {
+                            sendToNumber = inputText;
+                            dialog.dismiss();
+                            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                                requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 2);
+                            }
+                            //check if the number has already been invited or accepted the invitation
+                            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED &&
+                                    getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
+                                List<Person> participants = EventPersonController.getEventParticipants(selectedEvent);
+                                boolean alreadyInvited = false;
+                                for (Person participant : participants) {
+                                    if (participant.getPhoneNumber().equals(sendToNumber)) {
+                                        alreadyInvited = true;
+                                    }
+                                }
+                                if (alreadyInvited || PersonController.getPersonViaPhoneNumber(sendToNumber) != null &&
+                                        EventPersonController.personIsInvitedToEvent(selectedEvent, PersonController.getPersonViaPhoneNumber(sendToNumber))) {
+                                    Toast.makeText(getContext(), "Person nimmt bereits teil oder wurde bereits eingeladen.", Toast.LENGTH_SHORT).show();
+                                    dialog.cancel();
+                                } else {
+                                    //send the invitation
+                                    new SendSmsController().sendInvitationSMS(getContext(), selectedEvent, sendToNumber);
+                                }
+                            } else {
+                                Toast.makeText(getContext(), R.string.sending_sms_impossible, Toast.LENGTH_SHORT).show();
+                                Log.d("louis", getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY) ? "true" : "false");
+                            }
+                        }
+                        return false;
+                    }
+                });
+            }
+        });
+        dialog.findViewById(R.id.invitation_nfc).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getContext(), NFCActivity.class);
+                intent.putExtra("id",selectedEvent.getId());
+                startActivityForResult(intent,NFC_REQUEST);
+            }
+        });
+    }
 
     public Event getSelectedEvent() {
         return selectedEvent;
@@ -271,6 +298,7 @@ public class MyOwnEventDetailsFragment extends Fragment {
         // Repetition Element inside.
         myOwnEventeventDescription.setText(EventController.createEventDescription(selectedEvent));
     }
+
 }
 
 

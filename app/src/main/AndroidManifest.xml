@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="hft.wiinf.de.horario">
-
     <!-- All Permissions needed to use all functions of this app -->
     <uses-permission
         android:name="android.permission.READ_SMS"
@@ -18,8 +17,6 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.NFC" />
 
-
-    <!-- Overall application details like the theme or the name -->
     <application
         android:name="com.activeandroid.app.Application"
         android:allowBackup="false"
@@ -28,6 +25,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity
+            android:name=".NFCActivity"
+            android:label="Horario"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -38,9 +47,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepaths" />
         </provider>
-
-        <!-- define the start activity here - TabActivity is our mainActivity which will load
-        all Activities (Tabs) and in these activities the fragments -->
+        <!--
+ define the start activity here - TabActivity is our mainActivity which will load
+        all Activities (Tabs) and in these activities the fragments
+        -->
         <activity
             android:name=".TabActivity"
             android:label="Horario"
@@ -49,19 +59,16 @@
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Define the activity for the qrScanner -->
+        </activity> <!-- Define the activity for the qrScanner -->
         <activity
             android:name=".CaptureActivityPortrait"
             android:screenOrientation="sensor"
             android:stateNotNeeded="true"
             android:theme="@style/zxing_CaptureTheme"
-            android:windowSoftInputMode="stateAlwaysHidden" />
-
-        <!-- Some DB stuff - DB-Name, Version and the models (Tables) -->
+            android:windowSoftInputMode="stateAlwaysHidden" /> <!-- Some DB stuff - DB-Name, Version and the models (Tables) -->
         <meta-data
             android:name="AA_DB_NAME"
             android:value="horario.db" />
@@ -70,30 +77,24 @@
             android:value="18" />
         <meta-data
             android:name="AA_MODELS"
-            android:value="hft.wiinf.de.horario.model.Event, hft.wiinf.de.horario.model.Person,
-            hft.wiinf.de.horario.model.FailedSMS, hft.wiinf.de.horario.model.EventPerson" />
+            android:value="hft.wiinf.de.horario.model.Event, hft.wiinf.de.horario.model.Person,             hft.wiinf.de.horario.model.FailedSMS, hft.wiinf.de.horario.model.EventPerson" />
 
         <provider
             android:name="com.activeandroid.content.ContentProvider"
             android:authorities="${applicationId}"
             android:enabled="true"
-            android:exported="false"></provider>
-
-        <!-- Receiver which is needed to get the Alarm and do sth with it (here: display Notification) -->
-        <receiver android:name=".service.NotificationReceiver"></receiver>
-
-        <!-- Receiver will listen for a DeviceBoot and then do sth.-->
+            android:exported="false" /> <!-- Receiver which is needed to get the Alarm and do sth with it (here: display Notification) -->
+        <receiver android:name=".service.NotificationReceiver" /> <!-- Receiver will listen for a DeviceBoot and then do sth. -->
         <receiver
             android:name=".service.DeviceBootReceiver"
             android:enabled="true"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-        </receiver>
-
-        <!-- Receiver will listen for incoming sms-->
+        </receiver> <!-- Receiver will listen for incoming sms -->
         <receiver
             android:name=".service.SmsReceiver"
             android:enabled="true"
@@ -102,19 +103,16 @@
             <intent-filter android:priority="999">
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
-        </receiver>
-
-        <!-- Receiver will send sms and to everything which needs to happen like schedule job for FailedSMS-->
+        </receiver> <!-- Receiver will send sms and to everything which needs to happen like schedule job for FailedSMS -->
         <receiver
             android:name=".controller.SendSmsController"
             android:enabled="true"
             android:exported="true"
-            android:permission="android.permission.SEND_SMS"></receiver>
-
-        <!-- Service will send FailedSMS if the device has all needed functions like sim-card-->
+            android:permission="android.permission.SEND_SMS" /> <!-- Service will send FailedSMS if the device has all needed functions like sim-card -->
         <service
             android:name=".service.FailedSMSService"
             android:exported="true"
-            android:permission="android.permission.BIND_JOB_SERVICE"></service>
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
+
 </manifest>
