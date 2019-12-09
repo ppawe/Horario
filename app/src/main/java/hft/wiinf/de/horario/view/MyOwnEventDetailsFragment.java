@@ -52,9 +52,7 @@ public class MyOwnEventDetailsFragment extends Fragment {
 
     public final static int NFC_REQUEST = 0;
     Event event;
-    private Button myOwnEventDetailsButtonShowQR;
-    private Button myOwnEventDetailsButtonShowAcceptances;
-    private Button myOwnEventDetailsButtonSendInvite;
+    private Button myOwnEventDetailsButtonShowQR, myOwnEventDetailsButtonShowAcceptances, myOwnEventDetailsButtonSendInvite, myOwnEventDetailsButtonEdit;
     private RelativeLayout rLayout_myOwnEvent_helper;
     private ConstraintLayout myOwnEventDetails_constraintLayout;
     private TextView myOwnEventeventDescription;
@@ -100,6 +98,7 @@ public class MyOwnEventDetailsFragment extends Fragment {
         myOwnEventDetailsButtonShowAcceptances = view.findViewById(R.id.myOwnEventDetailsButtonShowAcceptances);
         myOwnEventDetailsButtonShowQR = view.findViewById(R.id.myOwnEventDetailsButtonShowQR);
         myOwnEventDetailsButtonSendInvite = view.findViewById(R.id.myOwnEventDetailsButtonSendInvite);
+        myOwnEventDetailsButtonEdit = view.findViewById(R.id.myOwnEventDetailsButtonEdit);
         rLayout_myOwnEvent_helper = view.findViewById(R.id.myOwnEvent_relativeLayout_helper);
         myOwnEventeventDescription = view.findViewById(R.id.myOwnEventeventDescription);
         myOwnEventYourAppointment = view.findViewById(R.id.myOwnEventyourAppointmentText);
@@ -207,6 +206,30 @@ public class MyOwnEventDetailsFragment extends Fragment {
             }
         });
 
+        myOwnEventDetailsButtonEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditEventFragment editEventFragment = new EditEventFragment();
+                Bundle bundleEdit = new Bundle();
+                bundleEdit.putLong("EventId", getEventID());
+                editEventFragment.setArguments(bundleEdit);
+
+                Bundle whichFragment = getArguments();
+
+                if (whichFragment.get("fragment").equals("EventOverview")) {
+                    FragmentTransaction fragmentTransaction = Objects.requireNonNull(getFragmentManager()).beginTransaction();
+                    fragmentTransaction.replace(R.id.eventOverview_frameLayout, editEventFragment, "MyOwnEventDetails");
+                    fragmentTransaction.addToBackStack("MyOwnEventDetails");
+                    fragmentTransaction.commit();
+                } else {
+                    FragmentTransaction fragmentTransaction = Objects.requireNonNull(getFragmentManager()).beginTransaction();
+                    fragmentTransaction.replace(R.id.calendar_frameLayout, editEventFragment, "MyOwnEventDetails");
+                    fragmentTransaction.addToBackStack("MyOwnEventDetails");
+                    fragmentTransaction.commit();
+                }
+            }
+        });
+
         return view;
     }
 
@@ -222,11 +245,11 @@ public class MyOwnEventDetailsFragment extends Fragment {
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                 builder.setView(R.layout.dialog_askingforphonenumber);
                 builder.setCancelable(true);
-                final AlertDialog dialog = builder.create();
-                dialog.show();
-                TextView text = dialog.findViewById(R.id.dialog_textView_telephoneNumber);
+                final AlertDialog dialog1 = builder.create();
+                dialog1.show();
+                TextView text = dialog1.findViewById(R.id.dialog_textView_telephoneNumber);
                 text.setText(R.string.enter_recipient_number);
-                EditText numberView = dialog.findViewById(R.id.dialog_EditText_telephonNumber);
+                EditText numberView = dialog1.findViewById(R.id.dialog_EditText_telephonNumber);
                 numberView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                     @Override
                     public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
@@ -234,7 +257,7 @@ public class MyOwnEventDetailsFragment extends Fragment {
                         //this regex checks valid country codes
                         if (actionId == EditorInfo.IME_ACTION_DONE && inputText.matches("\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$") || inputText.matches("(\\(555\\)521-5554|\\(555\\)521-5556)")) {
                             sendToNumber = inputText;
-                            dialog.dismiss();
+                            dialog1.dismiss();
                             if (ContextCompat.checkSelfPermission(activity, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
                                 requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 2);
                             }
@@ -251,7 +274,7 @@ public class MyOwnEventDetailsFragment extends Fragment {
                                 if (alreadyInvited || PersonController.getPersonViaPhoneNumber(sendToNumber) != null &&
                                         EventPersonController.personIsInvitedToEvent(selectedEvent, PersonController.getPersonViaPhoneNumber(sendToNumber))) {
                                     Toast.makeText(getContext(), "Person nimmt bereits teil oder wurde bereits eingeladen.", Toast.LENGTH_SHORT).show();
-                                    dialog.cancel();
+                                    dialog1.cancel();
                                 } else {
                                     //send the invitation
                                     new SendSmsController().sendInvitationSMS(getContext(), selectedEvent, sendToNumber);
@@ -264,11 +287,13 @@ public class MyOwnEventDetailsFragment extends Fragment {
                         return false;
                     }
                 });
+                dialog.dismiss();
             }
         });
         dialog.findViewById(R.id.invitation_nfc).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                dialog.dismiss();
                 Intent intent = new Intent(getContext(), NFCActivity.class);
                 intent.putExtra("id",selectedEvent.getId());
                 startActivityForResult(intent,NFC_REQUEST);

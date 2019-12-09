@@ -67,116 +67,120 @@ public class SmsReceiver extends BroadcastReceiver {
         SmsMessage[] receivedSMSArray;
         ArrayList<ReceivedHorarioSMS> unreadHorarioSMS = new ArrayList<ReceivedHorarioSMS>();
         boolean isSMSValidAndParseable = false;
-        if (bundle != null) {
-
-            // Retrieve the received SMS PDUs from the intent extras
-            Object[] pdus = (Object[]) bundle.get("pdus");
-            receivedSMSArray = new SmsMessage[pdus.length];
-
-            // For every SMS PDU received create an SMS Message and save it into an array
-            for (int i = 0; i < receivedSMSArray.length; i++) {
-                // Convert Object array
-                receivedSMSArray[i] = SmsMessage.createFromPdu((byte[]) pdus[i], "3gpp");
-            }
-            //Because of the SMS 160 character limit, long SMS may be received in multiple parts
-            //if so the parts are saved in the previousMessages array so they can be concatenated and checked later
-            List<String> previousMessages = new ArrayList<>();
-            for (int i = 0; i < receivedSMSArray.length; i++) {
-                /*collect all the Horario SMS*/
-                String message = receivedSMSArray[i].getMessageBody();
-                //this part handles Event acceptances and rejections
-                // if a valid acceptance or rejection is found a ReceivedHorarioSMS is created from it and saved to a list on which parseHorarioSMSAndUpdate() is called later
-                if (message.length() > 9 && message.substring(0, 9).equals(":Horario:") && message.substring(message.length() - 9).equals(":Horario:")) {
-                    previousMessages.clear();
-                    String number = (receivedSMSArray[i].getOriginatingAddress());
-                    String[] parsedSMS = message.substring(9, message.length() - 9).split(",");
-                    if (!checkForResponseRegexOk(parsedSMS)) {
-                        Log.d("Corrupt SMS Occurence!", message);
-                        break;
-                    }
-                    if (parsedSMS[1].equalsIgnoreCase("1")) {
-                        if (parsedSMS.length == 3) {
-                            unreadHorarioSMS.add(new ReceivedHorarioSMS(number, true, Integer.parseInt(parsedSMS[0]), null, parsedSMS[2]));
-                        }
-                    } else {
-                        if (parsedSMS.length == 4) {
-                            unreadHorarioSMS.add(new ReceivedHorarioSMS(number, false, Integer.parseInt(parsedSMS[0]), parsedSMS[3], parsedSMS[2]));
-                        }
-                    }
-                    isSMSValidAndParseable = true;
-                }
-                // this part handles invitations
-                // if a valid invitation is found an InvitationString is created from the message
-                // if the event in question is not in the past an Event to which the user is invited is created from the InvitationString
-                // finally calls the method that sends a notification about the notification to the user
-                else if (message.length() > 19 && message.substring(0, 19).equals(":HorarioInvitation:")) {
-                    previousMessages.clear();
-                    previousMessages.add(message);
-                    StringBuilder fullmessageBuilder = new StringBuilder();
-                    for (String previousMessage : previousMessages) {
-                        fullmessageBuilder.append(previousMessage);
-                    }
-                    if (InvitationController.checkForInvitationRegexOk(fullmessageBuilder.toString())) {
-                        InvitationString newInvitationString = new InvitationString(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""),
-                                new Date(), receivedSMSArray[i].getOriginatingAddress());
-                        String eventDateTimeString = newInvitationString.getStartTime() + " " + newInvitationString.getStartDate();
-                        SimpleDateFormat format = new SimpleDateFormat("HH:mm dd.MM.yyyy");
-                        try {
-                            Date eventDateTime = format.parse(eventDateTimeString);
-
-                            if (eventDateTime.after(newInvitationString.getDateReceived()) && newInvitationString.getRepetitionAsRepetition() == Repetition.NONE
-                                    || newInvitationString.getRepetitionAsRepetition() != Repetition.NONE &&
-                                    newInvitationString.getEndDateAsDate().after(newInvitationString.getDateReceived())) {
-                                if (!InvitationController.eventAlreadySaved(newInvitationString)) {
-                                    Event invitedEvent = EventController.createInvitedEventFromInvitation(newInvitationString);
-                                    Person creator = PersonController.addOrGetPerson(newInvitationString.getCreatorPhoneNumber(), newInvitationString.getCreatorName());
-                                    creator.setName(newInvitationString.getCreatorName());
-                                    NotificationController.sendInvitationNotification(context, newInvitationString, invitedEvent);
-                                }
-                            }
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                // this part handles multipart SMS Invitations
-                // because of the character limit for excuses, acceptances and rejections will never be sent as a multipart SMS
-                // otherwise identical to the branch above
-                else if (previousMessages.size() != 0) {
-                    previousMessages.add(message);
-                    StringBuilder fullmessageBuilder = new StringBuilder();
-                    for (String previousMessage : previousMessages) {
-                        fullmessageBuilder.append(previousMessage);
-                    }
-                    if (InvitationController.checkForInvitationRegexOk(fullmessageBuilder.toString())) {
-                        InvitationString newInvitationString = new InvitationString(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""), new Date(), receivedSMSArray[i].getOriginatingAddress());
-                        String eventDateTimeString = newInvitationString.getStartTime() + " " + newInvitationString.getStartDate();
-                        SimpleDateFormat format = new SimpleDateFormat("HH:mm dd.MM.yyyy");
-                        try {
-                            Date eventDateTime = format.parse(eventDateTimeString);
-                            if (eventDateTime.after(newInvitationString.getDateReceived()) && newInvitationString.getRepetitionAsRepetition() == Repetition.NONE
-                                    || newInvitationString.getRepetitionAsRepetition() != Repetition.NONE &&
-                                    newInvitationString.getEndDateAsDate().after(newInvitationString.getDateReceived())) {
-                                if (!InvitationController.eventAlreadySaved(newInvitationString)) {
-                                    Event invitedEvent = EventController.createInvitedEventFromInvitation(newInvitationString);
-                                    Person creator = PersonController.addOrGetPerson(newInvitationString.getCreatorPhoneNumber(), newInvitationString.getCreatorName());
-                                    creator.setName(newInvitationString.getCreatorName());
-                                    NotificationController.sendInvitationNotification(context, newInvitationString, invitedEvent);
-                                }
-                            }
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-
-                        previousMessages.clear();
-                    }
-                }
-            }
-            if (isSMSValidAndParseable) {
-                parseHorarioSMSAndUpdate(unreadHorarioSMS, context);
-            }
-
+        if (bundle == null) {
+            return;
         }
+
+        // Retrieve the received SMS PDUs from the intent extras
+        Object[] pdus = (Object[]) bundle.get("pdus");
+        receivedSMSArray = new SmsMessage[pdus.length];
+
+        // For every SMS PDU received create an SMS Message and save it into an array
+        for (int i = 0; i < receivedSMSArray.length; i++) {
+            // Convert Object array
+            receivedSMSArray[i] = SmsMessage.createFromPdu((byte[]) pdus[i], "3gpp");
+        }
+        //Because of the SMS 160 character limit, long SMS may be received in multiple parts
+        //if so the parts are saved in the previousMessages array so they can be concatenated and checked later
+        List<String> previousMessages = new ArrayList<>();
+        for (int i = 0; i < receivedSMSArray.length; i++) {
+            /*collect all the Horario SMS*/
+            String message = receivedSMSArray[i].getMessageBody();
+            //this part handles Event acceptances and rejections
+            // if a valid acceptance or rejection is found a ReceivedHorarioSMS is created from it and saved to a list on which parseHorarioSMSAndUpdate() is called later
+            if (message.length() > 9 && message.substring(0, 9).equals(":Horario:") && message.substring(message.length() - 9).equals(":Horario:")) {
+                previousMessages.clear();
+                String number = (receivedSMSArray[i].getOriginatingAddress());
+                String[] parsedSMS = message.substring(9, message.length() - 9).split(",");
+                if (!checkForResponseRegexOk(parsedSMS)) {
+                    Log.d("Corrupt SMS Occurence!", message);
+                    break;
+                }
+                if (parsedSMS[1].equalsIgnoreCase("1")) {
+                    if (parsedSMS.length == 3) {
+                        unreadHorarioSMS.add(new ReceivedHorarioSMS(number, true, Integer.parseInt(parsedSMS[0]), null, parsedSMS[2]));
+                    }
+                } else {
+                    if (parsedSMS.length == 4) {
+                        unreadHorarioSMS.add(new ReceivedHorarioSMS(number, false, Integer.parseInt(parsedSMS[0]), parsedSMS[3], parsedSMS[2]));
+                    }
+                }
+                isSMSValidAndParseable = true;
+            }
+            // this part handles invitations
+            // if a valid invitation is found an InvitationString is created from the message
+            // if the event in question is not in the past an Event to which the user is invited is created from the InvitationString
+            // finally calls the method that sends a notification about the notification to the user
+            else if (message.length() > 19 && message.substring(0, 19).equals(":HorarioInvitation:")) {
+                previousMessages.clear();
+                previousMessages.add(message);
+                StringBuilder fullmessageBuilder = new StringBuilder();
+                for (String previousMessage : previousMessages) {
+                    fullmessageBuilder.append(previousMessage);
+                }
+                if (InvitationController.checkForInvitationRegexOk(fullmessageBuilder.toString())) {
+                    InvitationString newInvitationString = new InvitationString(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""),
+                            new Date(), receivedSMSArray[i].getOriginatingAddress());
+                    String eventDateTimeString = newInvitationString.getStartTime() + " " + newInvitationString.getStartDate();
+                    SimpleDateFormat format = new SimpleDateFormat("HH:mm dd.MM.yyyy");
+                    try {
+                        Date eventDateTime = format.parse(eventDateTimeString);
+
+                        if (eventDateTime.after(newInvitationString.getDateReceived()) && newInvitationString.getRepetitionAsRepetition() == Repetition.NONE
+                                || newInvitationString.getRepetitionAsRepetition() != Repetition.NONE &&
+                                newInvitationString.getEndDateAsDate().after(newInvitationString.getDateReceived()) &&
+                                !InvitationController.eventAlreadySaved(newInvitationString)) {
+
+                            Event invitedEvent = EventController.createInvitedEventFromInvitation(newInvitationString);
+                            Person creator = PersonController.addOrGetPerson(newInvitationString.getCreatorPhoneNumber(), newInvitationString.getCreatorName());
+                            creator.setName(newInvitationString.getCreatorName());
+                            NotificationController.sendInvitationNotification(context, newInvitationString, invitedEvent);
+
+                        }
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            // this part handles multipart SMS Invitations
+            // because of the character limit for excuses, acceptances and rejections will never be sent as a multipart SMS
+            // otherwise identical to the branch above
+            else if (previousMessages.size() != 0) {
+                previousMessages.add(message);
+                StringBuilder fullmessageBuilder = new StringBuilder();
+                for (String previousMessage : previousMessages) {
+                    fullmessageBuilder.append(previousMessage);
+                }
+                if (InvitationController.checkForInvitationRegexOk(fullmessageBuilder.toString())) {
+                    InvitationString newInvitationString = new InvitationString(fullmessageBuilder.toString().replaceAll(":HorarioInvitation:", ""), new Date(), receivedSMSArray[i].getOriginatingAddress());
+                    String eventDateTimeString = newInvitationString.getStartTime() + " " + newInvitationString.getStartDate();
+                    SimpleDateFormat format = new SimpleDateFormat("HH:mm dd.MM.yyyy");
+                    try {
+                        Date eventDateTime = format.parse(eventDateTimeString);
+                        if (eventDateTime.after(newInvitationString.getDateReceived()) && newInvitationString.getRepetitionAsRepetition() == Repetition.NONE
+                                || newInvitationString.getRepetitionAsRepetition() != Repetition.NONE &&
+                                newInvitationString.getEndDateAsDate().after(newInvitationString.getDateReceived()) &&
+                                !InvitationController.eventAlreadySaved(newInvitationString)) {
+
+                            Event invitedEvent = EventController.createInvitedEventFromInvitation(newInvitationString);
+                            Person creator = PersonController.addOrGetPerson(newInvitationString.getCreatorPhoneNumber(), newInvitationString.getCreatorName());
+                            creator.setName(newInvitationString.getCreatorName());
+                            NotificationController.sendInvitationNotification(context, newInvitationString, invitedEvent);
+
+                        }
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                    previousMessages.clear();
+                }
+            }
+        }
+        if (isSMSValidAndParseable) {
+            parseHorarioSMSAndUpdate(unreadHorarioSMS, context);
+        }
+
+
     }
 
     /**
@@ -191,59 +195,56 @@ public class SmsReceiver extends BroadcastReceiver {
         // smsTextSplit[1]= boolean for acceptance, should be only 0 or 1
         // smsTextSplit[2]= String for name, only Chars and points
         // smsTextSplit[3]= Excuse as String, needs to be split again by "!" and checked on two strings
-        if (smsTextSplit.length == 3 || smsTextSplit.length == 4) {
-            boolean isAcceptance = smsTextSplit.length == 3;
-
-            //Make Patterns
-            Pattern pattern_onlyGreatherThan0 = Pattern.compile("^[^0\\D]\\d*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-            Pattern pattern_only0Or1 = Pattern.compile("([01])", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-            Pattern pattern_onlyAlphanumsAndPointsAndWhitespaces = Pattern.compile("(\\w|\\s|\\.)*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-            //Make the matchers
-            Matcher m_pattern_onlyGreatherThan0 = pattern_onlyGreatherThan0.matcher(smsTextSplit[0]);
-            Matcher m_pattern_only0Or1 = pattern_only0Or1.matcher(smsTextSplit[1]);
-            Matcher m_pattern_onlyAlphanumsAndPointsAndWhitespaces = pattern_onlyAlphanumsAndPointsAndWhitespaces.matcher(smsTextSplit[2]);
-            Matcher m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionReason = null;
-            Matcher m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionNote = null;
-
-            //Do only if it is a rejection of an event
-            if (!isAcceptance) {
-                String[] excuseSplit = smsTextSplit[3].split("!");
-                if (excuseSplit.length == 2) {
-                    m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionReason = pattern_onlyAlphanumsAndPointsAndWhitespaces.matcher(excuseSplit[0]);
-                    m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionNote = pattern_onlyAlphanumsAndPointsAndWhitespaces.matcher(excuseSplit[1]);
-
-                } else {
-                    return false;
-                }
-            }
-
-            if (!m_pattern_onlyGreatherThan0.matches()) {
-                Log.d("SMSRECEIVER", "Unvalid Id Part");
-                return false;
-            }
-            if (!m_pattern_only0Or1.matches()) {
-                Log.d("SMSRECEIVER", "Unvalid Acceptance boolean part");
-                return false;
-            }
-            if (!m_pattern_onlyAlphanumsAndPointsAndWhitespaces.matches()) {
-                Log.d("SMSRECEIVER", "Unvalid Alphanum/Dot/Whitespace sequence in name of participant");
-                return false;
-            }
-            if (!isAcceptance) {
-                if (!m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionReason.matches()) {
-                    Log.d("SMSRECEIVER", "REASONUnvalid Alphanum/Dot/Whitespace sequence in name of participant");
-                    return false;
-                }
-                if (!m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionNote.matches()) {
-                    Log.d("SMSRECEIVER", "NOTEUnvalid Alphanum/Dot/Whitespace sequence in name of participant");
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            //SMS is not split correctly -> wrong syntax therefore corrupt SMS
+        if (smsTextSplit.length != 3 && smsTextSplit.length != 4) {
             return false;
         }
+        boolean isAcceptance = smsTextSplit.length == 3;
+
+        //Make Patterns
+        Pattern pattern_onlyGreatherThan0 = Pattern.compile("^[^0\\D]\\d*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Pattern pattern_only0Or1 = Pattern.compile("([01])", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Pattern pattern_onlyAlphanumsAndPointsAndWhitespaces = Pattern.compile("(\\w|\\s|\\.)*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        //Make the matchers
+        Matcher m_pattern_onlyGreatherThan0 = pattern_onlyGreatherThan0.matcher(smsTextSplit[0]);
+        Matcher m_pattern_only0Or1 = pattern_only0Or1.matcher(smsTextSplit[1]);
+        Matcher m_pattern_onlyAlphanumsAndPointsAndWhitespaces = pattern_onlyAlphanumsAndPointsAndWhitespaces.matcher(smsTextSplit[2]);
+        Matcher m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionReason = null;
+        Matcher m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionNote = null;
+
+        //Do only if it is a rejection of an event
+        if (!isAcceptance) {
+            String[] excuseSplit = smsTextSplit[3].split("!");
+            if (excuseSplit.length != 2) {
+                return false;
+            }
+            m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionReason = pattern_onlyAlphanumsAndPointsAndWhitespaces.matcher(excuseSplit[0]);
+            m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionNote = pattern_onlyAlphanumsAndPointsAndWhitespaces.matcher(excuseSplit[1]);
+
+        }
+
+        if (!m_pattern_onlyGreatherThan0.matches()) {
+            Log.d("SMSRECEIVER", "Unvalid Id Part");
+            return false;
+        }
+        if (!m_pattern_only0Or1.matches()) {
+            Log.d("SMSRECEIVER", "Unvalid Acceptance boolean part");
+            return false;
+        }
+        if (!m_pattern_onlyAlphanumsAndPointsAndWhitespaces.matches()) {
+            Log.d("SMSRECEIVER", "Unvalid Alphanum/Dot/Whitespace sequence in name of participant");
+            return false;
+        }
+        if (!isAcceptance) {
+            if (!m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionReason.matches()) {
+                Log.d("SMSRECEIVER", "REASONUnvalid Alphanum/Dot/Whitespace sequence in name of participant");
+                return false;
+            }
+            if (!m_pattern_onlyAlphanumsAndPointsAndWhitespacesRejectionNote.matches()) {
+                Log.d("SMSRECEIVER", "NOTEUnvalid Alphanum/Dot/Whitespace sequence in name of participant");
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -279,7 +280,7 @@ public class SmsReceiver extends BroadcastReceiver {
             }
             //Check if is SerialEvent or not
             if (isSerialEvent(eventIdInSMS)) {
-                List<Event> myEvents = EventController.getMyEventsFromReceivedCreatorEventId(eventIdInSMS);
+                List<Event> myEvents = EventController.getOwnEventsFromCreatorEventId(eventIdInSMS);
                 if (singleUnreadSMS.isAcceptance()) {
                     //acceptance
                     for (Event event : myEvents) {
@@ -339,10 +340,10 @@ public class SmsReceiver extends BroadcastReceiver {
      * removes all the symbols in a phone number
      * do not use this to save phone numbers into the database
      * phone numbers should be saved in E.164 format
-     * @// TODO: 14.10.19 actually just remove this entirely if you find the time because it only works for german numbers
      *
      * @param number, a {@link String}
      * @return a {@link String} of the shorter number
+     * @// TODO: 14.10.19 actually just remove this entirely if you find the time because it only works for german numbers
      */
     private String shortenPhoneNumber(String number) {
         /*Take out all the chars not being numbers and return the numbers after "1" (German mobile number!!!)*/

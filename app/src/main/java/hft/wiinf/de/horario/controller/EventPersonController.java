@@ -56,7 +56,7 @@ public class EventPersonController {
      */
     private static EventPerson addOrGetEventPerson(@NonNull Event event, @NonNull Person person) {
         EventPerson eventPerson = getEventPerson(event, person);
-        if (eventPerson == null) {
+        if (eventPerson != null) {
             if (event.getId() == null) {
                 event.save();
             }

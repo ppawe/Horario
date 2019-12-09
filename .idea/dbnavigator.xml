@@ -90,7 +90,7 @@
           <port value="1234" />
           <database value="database" />
           <files>
-            <file path="$USER_HOME$/AndroidStudio/DeviceExplorer/Pixel_3a_API_29 [emulator-5554]/data/data/hft.wiinf.de.horario/databases/horario.db" schema="main" />
+            <file path="$USER_HOME$/AndroidStudio/DeviceExplorer/Copy_of_Pixel_3a_API_29 [emulator-5554]/data/data/hft.wiinf.de.horario/databases/horario.db" schema="main" />
           </files>
           <type value="NONE" />
           <user value="" />

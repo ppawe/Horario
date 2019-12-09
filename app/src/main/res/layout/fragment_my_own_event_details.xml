@@ -112,7 +112,28 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/myOwnEventDetailsButtonShowAcceptances" />
+            app:layout_constraintTop_toBottomOf="@+id/myOwnEventDetailsButtonShowAcceptances"
+            app:layout_constraintBottom_toTopOf="@+id/myOwnEventDetailsButtonEdit"/>
+
+        <Button
+            android:id="@+id/myOwnEventDetailsButtonEdit"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="@color/zentea_darkgreen"
+            android:drawableEnd="@drawable/ic_edit_black_24dp"
+            android:paddingStart="30dp"
+            android:paddingEnd="5dp"
+            android:text="@string/termin_bearbeiten"
+            android:textColor="@android:color/background_light"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/myOwnEventDetailsButtonSendInvite" />
 
         <TextView
             android:id="@+id/myOwnEventyourAppointmentText"

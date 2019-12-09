@@ -31,8 +31,9 @@ public class EventController {
      * @param event
      */
     public static void saveEvent(@NonNull Event event) {
-        if (event.getCreatorEventId() < 0)
+        if (event.getCreatorEventId() < 0) {
             event.setCreatorEventId(event.save());
+        }
         event.save();
     }
 
@@ -55,6 +56,7 @@ public class EventController {
 
     /**
      * gets an event with the given id from the database
+     *
      * @param id the id of the event
      * @return the event with the given id
      */
@@ -68,21 +70,23 @@ public class EventController {
      * @param creatorEventId the Id of the looked for event
      * @return a list of events created by the user with the given creatorEventId as their Id or pointing to that event as their startEvent
      */
-    public static List<Event> getMyEventsFromReceivedCreatorEventId(@NonNull Long creatorEventId) {
-        if (getEventById(creatorEventId).getRepetition() == Repetition.NONE) {
-            List<Event> eventList = new ArrayList<>();
-            if (getEventById(creatorEventId).getCreator() == PersonController.getPersonWhoIam()) {
-                eventList.add(getEventById(creatorEventId));
-            }
-            return eventList;
+    public static List<Event> getOwnEventsFromCreatorEventId(@NonNull Long creatorEventId) {
+        if (getEventById(creatorEventId).getRepetition() != Repetition.NONE) {
+            return new Select().from(Event.class).where("startEvent=?", creatorEventId).and("creator = ?", PersonController.getPersonWhoIam()).execute();
         }
-        return new Select().from(Event.class).where("startEvent=?", creatorEventId).and("creator = ?", PersonController.getPersonWhoIam()).execute();
+        List<Event> eventList = new ArrayList<>();
+        if (getEventById(creatorEventId).getCreator() == PersonController.getPersonWhoIam()) {
+            eventList.add(getEventById(creatorEventId));
+        }
+        return eventList;
+
     }
 
     /**
      * find all {@link Event}s that start and end between the given points in time
+     *
      * @param startDate the starting point
-     * @param endDate the end point
+     * @param endDate   the end point
      * @return a list of events taking place between startDate and endDate
      */
     public static List<Event> findEventsByTimePeriod(Date startDate, Date endDate) {
@@ -91,7 +95,6 @@ public class EventController {
 
 
     /**
-     *
      * @return a list of all {@link Event}s in the database
      */
     public static List<Event> getAllEvents() {
@@ -99,7 +102,6 @@ public class EventController {
     }
 
     /**
-     *
      * @return boolean representing whether or not any {@link Event}s have been created yet
      */
     public static boolean createdEventsYet() {
@@ -107,7 +109,6 @@ public class EventController {
     }
 
     /**
-     *
      * @return a list of {@link Event}s that the user has accepted and are taking place in the future
      */
     public static List<Event> findMyAcceptedEventsInTheFuture() {
@@ -124,7 +125,6 @@ public class EventController {
     }
 
     /**
-     * ! Only use this if the {@link Event} with that Id is the startEvent of the serial event chain, else use findAllEventsForSerialEvent !
      * finds all Events that point to the given event Id as their startEvent (this includes the startEvent itself)
      *
      * @param eventId the Id of the event for which the follow up events are to be found
@@ -135,7 +135,6 @@ public class EventController {
     }
 
     /**
-     * ! Use this instead of findFollowUpEvents if the event is not the startEvent of the serial event chain !
      * find all events that are part of the same serial event chain as the given event
      *
      * @param event the event that is part of a serial event chain
@@ -209,22 +208,27 @@ public class EventController {
     }
 
     /**
+     * gets an event with a given creatorEventId for a given phone number
      * used to get an event if you do not know its Id such as when receiving an invitation and checking if it is already in your database
-     * @param phoneNumber the number of of the creator of the event
+     *
+     * @param phoneNumber    the number of of the creator of the event
      * @param creatorEventId the Id of the event in the creator's database
      * @return
      */
     public static Event getEventViaPhoneAndCreatorEventId(String phoneNumber, String creatorEventId) {
         Person creator = PersonController.getPersonViaPhoneNumber(phoneNumber);
-        if (creator != null) {
-            return new Select().from(Event.class).where("creator = ?", creator.getId()).and("creatorEventId = ?", creatorEventId).executeSingle();
+        if (creator == null) {
+            return null;
         }
-        return null;
+        return new Select().from(Event.class).where("creator = ?", creator.getId()).and("creatorEventId = ?", creatorEventId).executeSingle();
+
     }
 
     /**
+     * checks whether an event with a given creatorEventId exists for a given phone number
      * this can probably replace some usages of getEventViaPhoneAndCreatorEventId()
-     * @param phoneNumber the phone number of the creator of the event
+     *
+     * @param phoneNumber    the phone number of the creator of the event
      * @param creatorEventId the Id of the event in the creator's database
      * @return boolean representing whether or not an event with the specified creatorEventId for the Person with the phoneNumber exists
      */
@@ -274,7 +278,7 @@ public class EventController {
         return event;
     }
 
-    public static String createEventDescription(Event event){
+    public static String createEventDescription(Event event) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
         SimpleDateFormat simpleTimeFormat = new SimpleDateFormat("HH:mm");
 
@@ -288,7 +292,7 @@ public class EventController {
         String place = event.getPlace();
         String eventDescription = event.getDescription();
 
-        switch (event.getRepetition()){
+        switch (event.getRepetition()) {
             case DAILY:
                 repetition = "täglich";
                 break;
@@ -301,23 +305,24 @@ public class EventController {
             case YEARLY:
                 repetition = "jährlich";
                 break;
-                default:
-                    repetition = "";
-                    break;
+            default:
+                repetition = "";
+                break;
         }
 
-        if(event.getRepetition() != Repetition.NONE){
-           return "Zeit: " + startDate + " " + startTime + " bis " +(startDate.equals(endDate) ? "" : endDate + " ") + endTime + "\n" + "Ort: " + place + "\n" +
-                    "Organisator: " + organiser + "\n" + "Wiederholung: " + repetition +" bis " + endOfRepetition + "\n" +
+        if (event.getRepetition() != Repetition.NONE) {
+            return "Zeit: " + startDate + " " + startTime + " bis " + (startDate.equals(endDate) ? "" : endDate + " ") + endTime + "\n" + "Ort: " + place + "\n" +
+                    "Organisator: " + organiser + "\n" + "Wiederholung: " + repetition + " bis " + endOfRepetition + "\n" +
                     "Termindetails: " + eventDescription;
-        }else{
-            return "Zeit: " + startDate + " " + startTime + " bis " +(startDate.equals(endDate) ? "" : endDate + " ") + endTime + "\n" + "Ort: " + place + "\n" +
+        } else {
+            return "Zeit: " + startDate + " " + startTime + " bis " + (startDate.equals(endDate) ? "" : endDate + " ") + endTime + "\n" + "Ort: " + place + "\n" +
                     "Organisator: " + organiser + "\n" +
                     "Termindetails: " + eventDescription;
         }
     }
+
     //format: creatorEventId | Startdate | Enddate | Starttime | Endtime | Repetition | EndOfRepetition | Title | Place | Description | CreatorName | CreatorPhoneNumber
-    public static String createEventInvitation(Event event){
+    public static String createEventInvitation(Event event) {
         String split = " | ";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
         SimpleDateFormat simpleTimeFormat = new SimpleDateFormat("HH:mm");
@@ -336,5 +341,77 @@ public class EventController {
         sb.append(event.getCreator().getPhoneNumber());
 
         return sb.toString();
+    }
+
+    public static void editAsSingleEvent(Event event) {
+        if (event.getStartEvent() != null) {
+            List<Event> serialEvents = new Select()
+                    .from(Event.class)
+                    .where("startevent = ?", event.getStartEvent().getId())
+                    .and("not id = ?", event.getId())
+                    .orderBy("startTime")
+                    .execute();
+            Event startEvent = event.getStartEvent();
+            for (Event singleEvent : serialEvents) {
+                if (singleEvent.getStartEvent().getId().equals(startEvent.getId())) {
+                    deleteEvent(singleEvent);
+                }
+            }
+        }
+        event.setStartEvent(null);
+        saveEvent(event);
+    }
+
+    public static void editAsSerialEvent(Event event, boolean editFollowup) {
+        if(event.getStartEvent() != null) {
+            List<Event> series = new Select()
+                    .from(Event.class)
+                    .where("startevent = ?", event.getStartEvent().getId())
+                    .and("not id = ?", event.getId())
+                    .orderBy("startTime")
+                    .execute();
+            for(Event singleEvent : series){
+                if(singleEvent.getStartTime().after(event.getEndRepetitionDate())){
+                    deleteEvent(singleEvent);
+                }
+            }
+
+        }
+    }
+
+    public static int getEventOrdinalInSeries(Event event) {
+        if (event.getStartEvent() == null) {
+            return -1;
+        }
+        if (event.getStartEvent().getId().equals(event.getId())) {
+            return 0;
+        }
+        List<Event> series = new Select()
+                .from(Event.class)
+                .where("startevent = ?", event.getStartEvent().getId())
+                .and("not id = ?", event.getId())
+                .orderBy("startTime")
+                .execute();
+        int ordinal = 0;
+        for (Event singleEvent : series) {
+            if (singleEvent.getStartTime().before(event.getStartTime())) {
+                ordinal++;
+            } else {
+                return ordinal;
+            }
+        }
+        return ordinal;
+    }
+
+    public static Event getEventInSeriesFromOrdinal(Event serialEvent, int ordinal) {
+        if (serialEvent.getStartEvent() == null) {
+            return null;
+        }
+        List<Event> series = findAllEventsForSerialEvent(serialEvent);
+        if (series.size() <= ordinal || ordinal < 0) {
+            return null;
+        }
+        return series.get(ordinal);
+
     }
 }

@@ -732,18 +732,6 @@ public class TabActivity extends AppCompatActivity implements ScanResultReceiver
                             toast.show();
 
                         }
-                        /*else if (singleEvent != null && EventPersonController.getEventPerson(singleEvent, PersonController.getPersonWhoIam()) != null &&
-                                EventPersonController.getEventPerson(singleEvent, PersonController.getPersonWhoIam()).getStatus() == AcceptedState.REJECTED) {
-                            //finish and restart the activity
-                            /*Intent intent = getIntent();
-                            finish();
-                            startActivity(intent);
-                            //write Toast, event is in database
-                            alertDialogAskForFinalDecission.dismiss();
-                            Toast toast = Toast.makeText(v.getContext(), R.string.eventIsInDatabaseRejected, Toast.LENGTH_LONG);
-                            toast.show();
-                            //if event is not in database
-                        }*/
                         else {
                             alertDialogAskForFinalDecission.dismiss();
                             updateEventStatus();

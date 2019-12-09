@@ -97,48 +97,49 @@ public class SendSmsController extends BroadcastReceiver {
         if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
             //If not give a short explanation, but do not disable any functions except sending sms
             Toast.makeText(context, context.getString(R.string.sms_notAbleToSend), Toast.LENGTH_LONG).show();
-        } else {
-            sms_phoneNo = sms_phoneNumber;
-            sms_msg = sms_rejectMessage;
-            sms_acc = sms_accepted;
-            sms_creatorID = sms_creatorEventId;
-            sms_eventShortDesc = eventShortDesc;
-            cont = context;
-
-            String msg;
-            Person personMe = PersonController.getPersonWhoIam();
-            if (sms_accepted) {
-                msg = ":Horario:" + sms_creatorEventId + ",1," + personMe.getName() + ":Horario:";
-            } else {
-                msg = ":Horario:" + sms_creatorEventId + ",0," + personMe.getName() + "," + sms_rejectMessage + ":Horario:";
-            }
-
-            try {
-                PendingIntent sentPI = PendingIntent.getBroadcast(cont, 0, new Intent(SENT), 0);
-
-                final SendSmsController smsUtils = new SendSmsController();
-                //register for sending and delivery
-                cont.registerReceiver(smsUtils, new IntentFilter(SendSmsController.SENT));
-
-                SmsManager sms = SmsManager.getDefault();
-                Log.d("louis", "sending sms");
-                sms.sendTextMessage(sms_phoneNumber, null, msg, sentPI, null);
-
-                //we unregister in 10 seconds
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            cont.unregisterReceiver(smsUtils);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, 10000);
-            } catch (Exception e) {
-                Toast.makeText(cont, cont.getString(R.string.sms_exception), Toast.LENGTH_SHORT).show();
-            }
+            return;
         }
+        sms_phoneNo = sms_phoneNumber;
+        sms_msg = sms_rejectMessage;
+        sms_acc = sms_accepted;
+        sms_creatorID = sms_creatorEventId;
+        sms_eventShortDesc = eventShortDesc;
+        cont = context;
+
+        String msg;
+        Person personMe = PersonController.getPersonWhoIam();
+        if (sms_accepted) {
+            msg = ":Horario:" + sms_creatorEventId + ",1," + personMe.getName() + ":Horario:";
+        } else {
+            msg = ":Horario:" + sms_creatorEventId + ",0," + personMe.getName() + "," + sms_rejectMessage + ":Horario:";
+        }
+
+        try {
+            PendingIntent sentPI = PendingIntent.getBroadcast(cont, 0, new Intent(SENT), 0);
+
+            final SendSmsController smsUtils = new SendSmsController();
+            //register for sending and delivery
+            cont.registerReceiver(smsUtils, new IntentFilter(SendSmsController.SENT));
+
+            SmsManager sms = SmsManager.getDefault();
+            Log.d("louis", "sending sms");
+            sms.sendTextMessage(sms_phoneNumber, null, msg, sentPI, null);
+
+            //we unregister in 10 seconds
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        cont.unregisterReceiver(smsUtils);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, 10000);
+        } catch (Exception e) {
+            Toast.makeText(cont, cont.getString(R.string.sms_exception), Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     /**

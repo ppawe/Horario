@@ -94,73 +94,78 @@ public class NotificationController {
      * @param event   the event for what the notification (alarm) needs to be set
      */
     public static void setAlarmForNotification(Context context, Event event) {
-        if (PersonController.getPersonWhoIam() != null) {
-            Person notificationPerson = PersonController.getPersonWhoIam();
-            //Check if user has enabled notifications --> if not do not set any alarms
-            if (notificationPerson.isEnablePush()) {
-                //Get the current time to check if event is in the past or in the future
-                Calendar testToday = GregorianCalendar.getInstance();
-                testToday.setTimeInMillis(System.currentTimeMillis());
+        if (PersonController.getPersonWhoIam() == null) {
+            return;
+        }
+        Person notificationPerson = PersonController.getPersonWhoIam();
+        //Check if user has enabled notifications --> if not do not set any alarms
+        if (!notificationPerson.isEnablePush()) {
+            return;
+        }
+        //Get the current time to check if event is in the past or in the future
+        Calendar testToday = GregorianCalendar.getInstance();
+        testToday.setTimeInMillis(System.currentTimeMillis());
 
-                Intent alarmIntent;
-                Date date;
-                Calendar calendar;
-                PendingIntent pendingIntent;
-                AlarmManager manager;
+        Intent alarmIntent;
+        Date date;
+        Calendar calendar;
+        PendingIntent pendingIntent;
+        AlarmManager manager;
 
-                //If event has happened in the past there will be no new alarms for it
-                if (event.getStartTime().after(testToday.getTime())) {
-                    alarmIntent = new Intent(context, NotificationReceiver.class);
-                    date = event.getStartTime();
-                    calendar = GregorianCalendar.getInstance();
-                    calendar.setTime(date);
+        //If event has happened in the past there will be no new alarms for it
+        if (event.getStartTime().after(testToday.getTime())) {
+            alarmIntent = new Intent(context, NotificationReceiver.class);
+            date = event.getStartTime();
+            calendar = GregorianCalendar.getInstance();
+            calendar.setTime(date);
 
-                    //Put some extra Data in the Intent, to show them in the notification
-                    alarmIntent.putExtra("Event", event.getShortTitle());
-                    alarmIntent.putExtra("Hour", calendar.get(Calendar.HOUR_OF_DAY));
-                    //Calculation of the remaining minutes, if minute is less than 10 it would show xx:5 instead of xx:05 --> add a zero (string)
-                    if (calendar.get(Calendar.MINUTE) < 10) {
-                        alarmIntent.putExtra("Minute", "0" + calendar.get(Calendar.MINUTE));
-                    } else {
-                        alarmIntent.putExtra("Minute", String.valueOf(calendar.get(Calendar.MINUTE)));
-                    }
-                    alarmIntent.putExtra("ID", event.getId().intValue());
-                    pendingIntent = PendingIntent.getBroadcast(context, event.getId().intValue(), alarmIntent, 0);
+            //Put some extra Data in the Intent, to show them in the notification
+            alarmIntent.putExtra("Event", event.getShortTitle());
+            alarmIntent.putExtra("Hour", calendar.get(Calendar.HOUR_OF_DAY));
+            //Calculation of the remaining minutes, if minute is less than 10 it would show xx:5 instead of xx:05 --> add a zero (string)
+            if (calendar.get(Calendar.MINUTE) < 10) {
+                alarmIntent.putExtra("Minute", "0" + calendar.get(Calendar.MINUTE));
+            } else {
+                alarmIntent.putExtra("Minute", String.valueOf(calendar.get(Calendar.MINUTE)));
+            }
+            alarmIntent.putExtra("ID", event.getId().intValue());
+            pendingIntent = PendingIntent.getBroadcast(context, event.getId().intValue(), alarmIntent, 0);
 
-                    //Set the alarm and calculate the time with the specified user notification time
-                    manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-                    manager.set(AlarmManager.RTC_WAKEUP, calcNotificationTime(calendar, notificationPerson), pendingIntent);
+            //Set the alarm and calculate the time with the specified user notification time
+            manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            manager.set(AlarmManager.RTC_WAKEUP, calcNotificationTime(calendar, notificationPerson), pendingIntent);
+        }
+        //If it is a repeating event we have to set a alarm for every single one
+        if (event.getRepetition().equals(Repetition.NONE)) {
+            return;
+        }
+        List<Event> allEvents = EventController.findFollowUpEvents(event.getId());
+        for (Event repEvent : allEvents) {
+            if (repEvent.getStartTime().after(testToday.getTime())) {
+                alarmIntent = new Intent(context, NotificationReceiver.class);
+                //Get startTime an convert into a Calender to use it
+                date = repEvent.getStartTime();
+                calendar = GregorianCalendar.getInstance();
+                calendar.setTime(date);
+
+                //Put extra Data which is needed for the Notification
+                alarmIntent.putExtra("Event", repEvent.getShortTitle());
+                alarmIntent.putExtra("Hour", calendar.get(Calendar.HOUR_OF_DAY));
+                if (calendar.get(Calendar.MINUTE) < 10) {
+                    alarmIntent.putExtra("Minute", "0" + calendar.get(Calendar.MINUTE));
+                } else {
+                    alarmIntent.putExtra("Minute", String.valueOf(calendar.get(Calendar.MINUTE)));
                 }
-                //If it is a repeating event we have to set a alarm for every single one
-                if (!event.getRepetition().equals(Repetition.NONE)) {
-                    List<Event> allEvents = EventController.findFollowUpEvents(event.getId());
-                    for (Event repEvent : allEvents) {
-                        if (repEvent.getStartTime().after(testToday.getTime())) {
-                            alarmIntent = new Intent(context, NotificationReceiver.class);
-                            //Get startTime an convert into a Calender to use it
-                            date = repEvent.getStartTime();
-                            calendar = GregorianCalendar.getInstance();
-                            calendar.setTime(date);
+                alarmIntent.putExtra("ID", repEvent.getId().intValue());
+                pendingIntent = PendingIntent.getBroadcast(context, repEvent.getId().intValue(), alarmIntent, 0);
 
-                            //Put extra Data which is needed for the Notification
-                            alarmIntent.putExtra("Event", repEvent.getShortTitle());
-                            alarmIntent.putExtra("Hour", calendar.get(Calendar.HOUR_OF_DAY));
-                            if (calendar.get(Calendar.MINUTE) < 10) {
-                                alarmIntent.putExtra("Minute", "0" + calendar.get(Calendar.MINUTE));
-                            } else {
-                                alarmIntent.putExtra("Minute", String.valueOf(calendar.get(Calendar.MINUTE)));
-                            }
-                            alarmIntent.putExtra("ID", repEvent.getId().intValue());
-                            pendingIntent = PendingIntent.getBroadcast(context, repEvent.getId().intValue(), alarmIntent, 0);
-
-                            //Set AlarmManager --> NotificationReceiver will be called
-                            manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-                            manager.set(AlarmManager.RTC_WAKEUP, calcNotificationTime(calendar, notificationPerson), pendingIntent);
-                        }
-                    }
-                }
+                //Set AlarmManager --> NotificationReceiver will be called
+                manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                manager.set(AlarmManager.RTC_WAKEUP, calcNotificationTime(calendar, notificationPerson), pendingIntent);
             }
         }
+
+
     }
 
     /**

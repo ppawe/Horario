@@ -333,7 +333,7 @@ public class CalendarFragment extends Fragment {
             if(start.get(Calendar.DAY_OF_YEAR) == end.get(Calendar.DAY_OF_YEAR) && start.get(Calendar.YEAR) == end.get(Calendar.YEAR)) {
                 description = timeFormat.format(event.getStartTime()) + " - " + timeFormat.format(event.getEndTime()) + " " + event.getShortTitle();
             }else{
-                DateFormat dayFormat = new SimpleDateFormat("dd.MM.yy HH:mm");
+                DateFormat dayFormat = new SimpleDateFormat("dd.MM HH:mm");
                 description = dayFormat.format(event.getStartTime()) + " - " + dayFormat.format(event.getEndTime()) + " " + event.getShortTitle();
             }
             if (event.getCreator().equals(PersonController.getPersonWhoIam())) {

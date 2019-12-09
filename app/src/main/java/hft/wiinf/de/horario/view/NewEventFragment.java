@@ -102,7 +102,6 @@ public class NewEventFragment extends Fragment {
     /**
      * initializes all the view variables and sets onCLickListener for the editText views
      * as well as some user navigation behaviour
-     *
      * @param view               the view created from the layout in onCreateView()
      * @param savedInstanceState the saved state of the fragment from before a system event changed it
      */
@@ -299,7 +298,6 @@ public class NewEventFragment extends Fragment {
             textView_endofRepetiton.setVisibility(View.GONE);
             editText_endOfRepetition.setVisibility(View.GONE);
             spinner_repetition.setVisibility(View.GONE);
-
         }
     }
 
@@ -328,6 +326,7 @@ public class NewEventFragment extends Fragment {
                 startTime.get(Calendar.MONTH), startTime.get(Calendar.DAY_OF_MONTH));
         mDatePickerDialog.show();
     }
+
     /**
      * opens a dialog that allows the user to pick a valid date and sets it to the date field
      */
@@ -503,6 +502,7 @@ public class NewEventFragment extends Fragment {
     /**
      * I do not know what this does quite yet
      * saves the date to some file but what for?
+     *
      * @param date the date that's being saved
      */
     private void saveReadDate(String date) {
@@ -523,6 +523,7 @@ public class NewEventFragment extends Fragment {
     /**
      * clears all entries and opens a dialog with buttons that allows the user to either create a new
      * {@link Event} or show the newly created event's QR Code
+     *
      * @param eventId the event id of the newly created event
      */
     private void openSavedSuccessfulDialog(final long eventId) {
@@ -590,6 +591,7 @@ public class NewEventFragment extends Fragment {
 
     /**
      * checks if all entries are valid
+     *
      * @return true if fields are valid; false if not
      */
     private boolean checkValidity() {
@@ -693,7 +695,7 @@ public class NewEventFragment extends Fragment {
                 break;
         }
         if (getRepetition() != Repetition.NONE && endOfRepetition.before(minEndDate)) {
-            Toast.makeText(getContext(), "Das Ende der Wiederholung liegt vor Ende der Mindestlänge des Wiederholungsintervalls", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Das Ende der Wiederholung liegt vor dem Ende des Wiederholungsintervalls", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;
@@ -703,6 +705,7 @@ public class NewEventFragment extends Fragment {
 
     /**
      * converts the numerical value of the spinner to the corresponding {@link Repetition}
+     *
      * @return Repetition corresponding to the user's choice
      */
     private Repetition getRepetition() {
@@ -738,6 +741,7 @@ public class NewEventFragment extends Fragment {
 
     /**
      * checks if the app has permission to read the user's phone number
+     *
      * @return true if it has the needed permission; false if not
      */
     private boolean isPhonePermissionGranted() {
@@ -759,8 +763,9 @@ public class NewEventFragment extends Fragment {
      * if they responded no and didn't check "never ask again" it simply asks again 2 times
      * then goes on to ask the user to enter their phone number manually
      * if they granted the permission the phone number is read from their Sim Card
-     * @param requestCode the code of the permission request
-     * @param permissions the permissions that the user was asked for
+     *
+     * @param requestCode  the code of the permission request
+     * @param permissions  the permissions that the user was asked for
      * @param grantResults the results for the requests
      */
     @Override
@@ -845,7 +850,6 @@ public class NewEventFragment extends Fragment {
     // method to read the phone number of the user
 
     /**
-     * @// TODO: 05.09.19 remove test regex (\\(555\\)521-5554|\\(555\\)521-5556)
      * reads the phone number of the user from the Sim card
      * if the phone number couldn't be read the user is asked to enter it manually
      */
@@ -869,7 +873,7 @@ public class NewEventFragment extends Fragment {
             //if the number could not been read, open a dialog
             if (me.getPhoneNumber() == null || !me.getPhoneNumber().matches("\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|\n" +
                     "2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|\n" +
-                    "4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$") && !me.getPhoneNumber().matches("(\\(555\\)521-5554|\\(555\\)521-5556)")) {
+                    "4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$")) {
                 openDialogAskForPhoneNumber();
             } else {
                 Toast.makeText(getContext(), R.string.thanksphoneNumber, Toast.LENGTH_SHORT).show();
@@ -886,8 +890,7 @@ public class NewEventFragment extends Fragment {
     }
 
     /**
-     * @// TODO: 05.09.19 remove test regex (\\(555\\)521-5554|\\(555\\)521-5556)
-     *opens a dialog where the user is asked to enter their phone number
+     * opens a dialog where the user is asked to enter their phone number
      * the entered number is validated and upon success the event is saved
      */
     private void openDialogAskForPhoneNumber() {
@@ -902,7 +905,7 @@ public class NewEventFragment extends Fragment {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 String inputText = v.getText().toString().replaceAll("\\s", "");
                 //on click: read out the textfield, save the person and close the keyboard
-                if (actionId == EditorInfo.IME_ACTION_DONE && inputText.matches("\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$") || inputText.matches("(\\(555\\)521-5554|\\(555\\)521-5556)")) {
+                if (actionId == EditorInfo.IME_ACTION_DONE && inputText.matches("\\+(9[976]\\d|8[987530]\\d|6[987]\\d|5[90]\\d|42\\d|3[875]\\d|2[98654321]\\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\\d{1,14}$")) {
                     me.setPhoneNumber(mPhoneNumber.getText().toString());
                     PersonController.savePerson(me);
                     Toast.makeText(getContext(), R.string.thanksphoneNumber, Toast.LENGTH_SHORT).show();

@@ -252,4 +252,7 @@
     <string name="delete_event">TERMIN LÖSCHEN</string>
     <string name="einladen_per_sms">Einladen per SMS</string>
     <string name="einladen_per_nfc">Einladen per NFC</string>
+    <string name="edit_event">Event bearbeiten</string>
+    <string name="termin_bearbeiten">Termin bearbeiten</string>
+    <string name="folgetermine_ebenfalls_ndern">Folgetermine ebenfalls ändern</string>
 </resources>
